@@ -1,4 +1,4 @@
-import connectToDatabase from "./database.js";
+import connectToDatabase from "./src/utils/database.js";
 import mongoose from "mongoose";
 
 function gracefulShutdown() {

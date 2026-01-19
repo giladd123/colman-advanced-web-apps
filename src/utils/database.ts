@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 async function connectToDatabase() {
     try {
-        await mongoose.connect(process.env.DATABASE_URL);
+        await mongoose.connect(process.env.DATABASE_URL!);
     } catch (error) {
         console.error("Database connection error:", error);
         process.exit(1);
