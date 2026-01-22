@@ -5,6 +5,9 @@ export async function addPost(title: string, sender: string, content: string) {
   return await newPost.save();
 }
 
+export async function getAllPosts() {
+  return await postModel.find({});
+}
 export async function updatePost(
   postId: string,
   title?: string,

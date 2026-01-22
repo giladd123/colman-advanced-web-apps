@@ -1,9 +1,14 @@
 import { Request, Router } from "express";
-import { addPost, updatePost } from "../controllers/postController";
+import {
+  addPost,
+  updatePost,
+  getAllPosts,
+} from "../controllers/postController";
 import {
   addPostValidator,
   putPostValidator,
 } from "../middleware/postValidator";
+import { postModel } from "../models/post";
 
 export const postRouter = Router();
 
@@ -17,6 +22,10 @@ postRouter.post("/", addPostValidator, async (req: Request, res) => {
   }
 });
 
+postRouter.get("/", async (req: Request, res) => {
+  const allPosts = await getAllPosts();
+  return res.status(200).json(allPosts);
+});
 postRouter.put("/:postId", putPostValidator, async (req: Request, res) => {
   const postId = req.params.postId as string; // we know that postId is a string from the validator
 
