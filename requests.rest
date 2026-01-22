@@ -7,3 +7,11 @@ Content-Type: application/json
     "sender": "example_sender",
     "content": "Example content for the post"
 }
+
+### Update a post  
+PUT http://localhost:8080/posts/<postId>  
+Content-Type: application/json  
+
+{
+    "title": "Example Title to Update",
+}
