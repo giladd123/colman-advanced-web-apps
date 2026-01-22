@@ -3,6 +3,7 @@ import {
   addPost,
   updatePost,
   getAllPosts,
+  getPostsBySender,
 } from "../controllers/postController";
 import {
   addPostValidator,
@@ -23,9 +24,20 @@ postRouter.post("/", addPostValidator, async (req: Request, res) => {
 });
 
 postRouter.get("/", async (req: Request, res) => {
-  const allPosts = await getAllPosts();
-  return res.status(200).json(allPosts);
+  try {
+    let posts;
+    if (!req.query.sender) {
+      posts = await getAllPosts();
+    } else {
+      const sender = req.query.sender as string;
+      posts = await getPostsBySender(sender);
+    }
+    return res.status(200).json(posts);
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to retrieve posts" });
+  }
 });
+
 postRouter.put("/:postId", putPostValidator, async (req: Request, res) => {
   const postId = req.params.postId as string; // we know that postId is a string from the validator
 

@@ -8,6 +8,9 @@ export async function addPost(title: string, sender: string, content: string) {
 export async function getAllPosts() {
   return await postModel.find({});
 }
+export async function getPostsBySender(senderId: string) {
+  return await postModel.find({ sender: senderId });
+}
 export async function updatePost(
   postId: string,
   title?: string,
