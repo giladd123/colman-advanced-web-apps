@@ -1,9 +1,15 @@
 import { Request, Router } from "express";
-import { addPost, updatePost } from "../controllers/postController";
+import {
+  addPost,
+  updatePost,
+  getAllPosts,
+  getPostsBySender,
+} from "../controllers/postController";
 import {
   addPostValidator,
   putPostValidator,
 } from "../middleware/postValidator";
+import { postModel } from "../models/post";
 
 export const postRouter = Router();
 
@@ -14,6 +20,21 @@ postRouter.post("/", addPostValidator, async (req: Request, res) => {
     return res.status(201).json({ message: "Post added successfully" });
   } catch (error) {
     return res.status(500).json({ error: "Failed to add post" });
+  }
+});
+
+postRouter.get("/", async (req: Request, res) => {
+  try {
+    let posts;
+    if (!req.query.sender) {
+      posts = await getAllPosts();
+    } else {
+      const sender = req.query.sender as string;
+      posts = await getPostsBySender(sender);
+    }
+    return res.status(200).json(posts);
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to retrieve posts" });
   }
 });
 

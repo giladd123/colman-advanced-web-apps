@@ -8,6 +8,14 @@ Content-Type: application/json
     "content": "Example content for the post"
 }
 
+### Get all posts  
+GET http://localhost:8080/posts
+
+
+### Get posts by sender  
+GET http://localhost:8080/posts?sender=example_sender
+
+
 ### Update a post  
 PUT http://localhost:8080/posts/<postId>  
 Content-Type: application/json  
