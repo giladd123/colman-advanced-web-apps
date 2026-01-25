@@ -9,7 +9,6 @@ import {
   addPostValidator,
   putPostValidator,
 } from "../middleware/postValidator";
-import { postModel } from "../models/post";
 
 export const postRouter = Router();
 
