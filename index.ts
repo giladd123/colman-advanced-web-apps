@@ -32,7 +32,7 @@ function gracefulShutdown() {
 process.loadEnvFile();
 
 const main = async () => {
-  ensureEnv(["DATABASE_URL", "JWT_SECRET"]);
+  ensureEnv(["DATABASE_URL", "JWT_SECRET", "JWT_REFRESH_SECRET"]);
   await connectToDatabase();
   console.log("Connected to DB");
   process.on("SIGINT", gracefulShutdown).on("SIGTERM", gracefulShutdown);

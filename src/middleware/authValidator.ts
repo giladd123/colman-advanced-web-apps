@@ -1,11 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { validateAuthToken } from "../utils/jwtUtils";
 
 export async function validateLogin(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
+  if (!req.body || typeof req.body !== "object") {
+    return res.status(400).json({ error: "Invalid request body" });
+  }
   const { email, password } = req.body;
   if (!email || typeof email !== "string" || email.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing email" });
@@ -21,7 +24,11 @@ export async function validateRegister(
   res: Response,
   next: NextFunction,
 ) {
+  if (!req.body || typeof req.body !== "object") {
+    return res.status(400).json({ error: "Invalid request body" });
+  }
   const { username, email, password } = req.body;
+
   if (!username || typeof username !== "string" || username.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing username" });
   }
@@ -49,15 +56,31 @@ export async function authenticate(
     return res.status(401).json({ error: "Unauthorized" });
   }
   const token = authHeader.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!, (err, user) => {
-      if (err) {
-        return res.status(401).json({ error: "Invalid token" });
-      }
-    });
-    (req as any).user = decoded; // Attach decoded token to request object
-    next();
-  } catch (error) {
+
+  const decoded = validateAuthToken(token);
+  if (!decoded) {
     return res.status(401).json({ error: "Invalid token" });
   }
+
+  (req as any).user = decoded; // Attach decoded token to request object
+  next();
+}
+
+export async function validateRefreshToken(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.body || typeof req.body !== "object") {
+    return res.status(400).json({ error: "Invalid request body" });
+  }
+  const { refreshToken } = req.body;
+  if (
+    !refreshToken ||
+    typeof refreshToken !== "string" ||
+    refreshToken.trim() === ""
+  ) {
+    return res.status(400).json({ error: "Refresh token is required" });
+  }
+  next();
 }

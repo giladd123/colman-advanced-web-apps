@@ -5,6 +5,7 @@ export interface IUser {
   email: string;
   username: string;
   password: string;
+  refreshTokens: string[];
 }
 
 export interface IUserMethods {
@@ -29,11 +30,14 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>({
     type: String,
     required: true,
   },
+  refreshTokens: {
+    type: [String],
+    default: [],
+  },
 });
-export const User = model<IUser, UserModel>("User", userSchema);
 
 // Hash password before saving
-userSchema.pre("save", async function (this: UserDocument) {
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   const saltRounds = 10;
   const salt = await bcrypt.genSalt(saltRounds);
@@ -47,4 +51,6 @@ userSchema.methods.comparePassword = async function (
 ): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
+
+export const User = model<IUser, UserModel>("User", userSchema);
 export default User;
