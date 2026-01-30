@@ -37,3 +37,31 @@ export async function createCommentValidator(
 
   next();
 }
+
+export function getCommentsValidator(req: Request, res: Response, next: NextFunction) {
+  const postID = req.params.postID;
+
+  if (!postID || typeof postID !== "string") {
+    return res.status(400).json({ error: "postID query param is required" });
+  }
+
+  if (!isValidObjectId(postID)) {
+    return res.status(400).json({ error: "Invalid postID" });
+  }
+
+  next();
+}
+
+export function getCommentByIdValidator(req: Request, res: Response, next: NextFunction) {
+  const id= req.params.id;
+
+  if (!id || typeof id !== "string") {
+    return res.status(400).json({ error: "Comment ID is required" });
+  }
+
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ error: "Invalid comment ID" });
+  }
+
+  next();
+}
