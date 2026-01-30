@@ -1,6 +1,6 @@
 import { Request, Router } from "express";
-import { createComment } from "../controllers/commentController";
-import { createCommentValidator } from "../middleware/commentValidator";
+import { createComment, getCommentsByPostID } from "../controllers/commentController";
+import { createCommentValidator, getCommentsValidator } from "../middleware/commentValidator";
 
 export const commentRouter = Router();
 
@@ -15,3 +15,15 @@ commentRouter.post("/", createCommentValidator, async (req: Request, res) => {
     }
   }
 );
+
+commentRouter.get("/:postID", getCommentsValidator, async (req: Request, res) => {
+    const postID = req.params.postID as string;
+
+    try {
+    const comments = await getCommentsByPostID(postID);
+    return res.status(200).json(comments);
+    } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch comments" });
+  }
+});
