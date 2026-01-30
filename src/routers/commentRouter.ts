@@ -1,6 +1,6 @@
 import { Request, Router } from "express";
-import { createComment, getCommentsByPostID, getCommentById, editComment } from "../controllers/commentController";
-import { createCommentValidator, getCommentsValidator, getCommentByIdValidator, editCommentValidator } from "../middleware/commentValidator";
+import { createComment, getCommentsByPostID, editComment, deleteComment } from "../controllers/commentController";
+import { createCommentValidator, getCommentsValidator, getCommentByIdValidator, editCommentValidator, deleteCommentValidation } from "../middleware/commentValidator";
 
 export const commentRouter = Router();
 
@@ -24,7 +24,7 @@ commentRouter.get("/postID/:postID", getCommentsValidator, async (req: Request, 
       return res.status(200).json(comments);
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: "Failed to fetch comments" });
+      return res.status(500).json({ error: `Failed to fetch comments of the post ${postID}` });
   }
 });
 
@@ -36,7 +36,7 @@ commentRouter.get("/commentID/:id", getCommentByIdValidator, async (req: Request
     return res.status(200).json(comment);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Failed to fetch comment" });
+    return res.status(500).json({ error: `Failed to fetch comment ${id}`});
   }
 });
 
@@ -50,6 +50,19 @@ commentRouter.put("/:id", editCommentValidator, async (req: Request, res) => {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: "Failed to update comment" });
+    }
+  }
+);
+
+commentRouter.delete("/:id", deleteCommentValidation, async (req: Request, res) => {
+    const id = req.params.id as string;
+
+    try {
+      await deleteComment(id);
+      return res.status(200).json({ message: `The comment ${id} deleted successfully` });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: `Failed to delete comment ${id}` });
     }
   }
 );

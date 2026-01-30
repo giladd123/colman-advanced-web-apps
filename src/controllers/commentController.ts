@@ -8,3 +8,5 @@ export const getCommentById = async (_id: string) => await commentModel.findOne(
 
 export const editComment = async (comment: Partial<Omit<Comment, 'postID'>>, id: string) =>
     await commentModel.findByIdAndUpdate(id, comment, { new: true });
+
+export const deleteComment = async (commentId: string) => await commentModel.deleteOne({ _id: commentId });
