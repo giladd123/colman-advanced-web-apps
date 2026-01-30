@@ -1,6 +1,6 @@
 import { Request, Router } from "express";
-import { createComment, getCommentsByPostID, getCommentById } from "../controllers/commentController";
-import { createCommentValidator, getCommentsValidator, getCommentByIdValidator } from "../middleware/commentValidator";
+import { createComment, getCommentsByPostID, getCommentById, editComment } from "../controllers/commentController";
+import { createCommentValidator, getCommentsValidator, getCommentByIdValidator, editCommentValidator } from "../middleware/commentValidator";
 
 export const commentRouter = Router();
 
@@ -32,15 +32,24 @@ commentRouter.get("/commentID/:id", getCommentByIdValidator, async (req: Request
   const id = req.params.id as string;
  
   try {
-    const comment = await getCommentById(id);
-
-    if (!comment) {
-      return res.status(404).json({ error: `Comment with id ${id} not found` });
-    }
-
+    const comment = (req as any).comment;
     return res.status(200).json(comment);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to fetch comment" });
   }
 });
+
+commentRouter.put("/:id", editCommentValidator, async (req: Request, res) => {
+    const id = req.params.id as string;
+    const { sender, content } = req.body;
+    
+    try {
+      const updatedComment = await editComment({ sender, content }, id);
+      return res.status(200).json(updatedComment);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Failed to update comment" });
+    }
+  }
+);
