@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { isValidObjectId } from "mongoose";
 import { postModel } from "../models/post";
-import { log } from "node:console";
 import { getCommentById } from "../controllers/commentController";
 
 export async function createCommentValidator(
@@ -31,23 +30,23 @@ export async function createCommentValidator(
     return res.status(400).json({ error: `Invalid postID: ${postID}` });
   }
 
-  const postExists = await postModel.findById(postID);
-  if (!postExists) {
-    return res.status(404).json({ error: "Post not found" });
-  }
-
   next();
 }
 
-export function getCommentsValidator(req: Request, res: Response, next: NextFunction) {
+export async function getCommentsValidator(req: Request, res: Response, next: NextFunction) {
   const postID = req.params.postID;
+  const postExists = await postModel.findById(postID);
+
+  if (!postExists) {
+    return res.status(404).json({ error: `Post ${postID} not found` });
+  }
 
   if (!postID || typeof postID !== "string") {
     return res.status(400).json({ error: "postID query param is required" });
   }
 
   if (!isValidObjectId(postID)) {
-    return res.status(400).json({ error: "Invalid postID" });
+    return res.status(400).json({ error: `Invalid postID: ${postID}` });
   }
 
   next();
@@ -63,7 +62,7 @@ export async function getCommentByIdValidator(req: Request, res: Response, next:
   if (!(await validateCommentExists(req, res))) return;
 
   if (!isValidObjectId(id)) {
-    return res.status(400).json({ error: "Invalid comment ID" });
+    return res.status(400).json({ error: `Invalid comment id: ${id}` });
   }
 
   next();
@@ -77,7 +76,7 @@ export async function editCommentValidator(
   const id = req.params.id as string;
 
   if (!id || !isValidObjectId(id)) {
-    return res.status(400).json({ error: "Invalid comment id" });
+    return res.status(400).json({ error: `Invalid comment id: ${id}` });
   }
 
   if (!(await validateCommentExists(req, res))) return;
@@ -94,6 +93,22 @@ export async function editCommentValidator(
 
   next();
 }
+
+export const deleteCommentValidation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id = req.params.id as string;
+
+  if (!id || !isValidObjectId(id)) {
+    return res.status(400).json({ error: `Invalid comment id: ${id}` });
+  }
+
+  if (!(await validateCommentExists(req, res))) return;
+
+  next();
+};
 
 async function validateCommentExists(req: Request, res: Response): Promise<boolean> {
   const id = req.params.id as string;
