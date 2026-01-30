@@ -51,3 +51,17 @@ export function getCommentsValidator(req: Request, res: Response, next: NextFunc
 
   next();
 }
+
+export function getCommentByIdValidator(req: Request, res: Response, next: NextFunction) {
+  const id= req.params.id;
+
+  if (!id || typeof id !== "string") {
+    return res.status(400).json({ error: "Comment ID is required" });
+  }
+
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ error: "Invalid comment ID" });
+  }
+
+  next();
+}

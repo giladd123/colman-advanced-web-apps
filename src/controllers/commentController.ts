@@ -4,3 +4,5 @@ export const createComment = async (comment: Comment) => commentModel.create(com
 
 export const getCommentsByPostID = async (postID: string) => await commentModel.find({ postID });
 
+export const getCommentById = async (_id: string) => await commentModel.findOne({ _id });
+
