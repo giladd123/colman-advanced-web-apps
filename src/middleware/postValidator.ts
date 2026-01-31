@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { postModel } from "../models/post";
+import { User } from "../models/user";
 import mongoose from "mongoose";
 
-export function addPostValidator(
+export async function addPostValidator(
   req: Request,
   res: Response,
   next: NextFunction,
@@ -10,12 +11,19 @@ export function addPostValidator(
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ error: "Request body is required" });
   }
-  const { title, sender, content } = req.body;
+  const { title, userID, content } = req.body;
   if (!title || typeof title !== "string" || title.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing title" });
   }
-  if (!sender || typeof sender !== "string" || sender.trim() === "") {
-    return res.status(400).json({ error: "Invalid or missing sender" });
+  if (!userID || typeof userID !== "string" || userID.trim() === "") {
+    return res.status(400).json({ error: "Invalid or missing userID" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(userID)) {
+    return res.status(400).json({ error: "Invalid userID format" });
+  }
+  const userExists = await User.findById(userID);
+  if (!userExists) {
+    return res.status(404).json({ error: "User not found" });
   }
   if (!content || typeof content !== "string" || content.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing content" });
@@ -37,10 +45,17 @@ export async function putPostValidator(
       return res.status(400).json({ error: "Invalid title" });
     }
   }
-  if ("sender" in req.body) {
-    const { sender } = req.body;
-    if (typeof sender !== "string" || sender.trim() === "") {
-      return res.status(400).json({ error: "Invalid sender" });
+  if ("userID" in req.body) {
+    const { userID } = req.body;
+    if (typeof userID !== "string" || userID.trim() === "") {
+      return res.status(400).json({ error: "Invalid userID" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userID)) {
+      return res.status(400).json({ error: "Invalid userID format" });
+    }
+    const userExists = await User.findById(userID);
+    if (!userExists) {
+      return res.status(404).json({ error: "User not found" });
     }
   }
   if ("content" in req.body) {

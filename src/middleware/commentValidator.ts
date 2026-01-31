@@ -1,21 +1,31 @@
 import { Request, Response, NextFunction } from "express";
 import { isValidObjectId } from "mongoose";
 import { postModel } from "../models/post";
+import { User } from "../models/user";
 import { getCommentById } from "../controllers/commentController";
 
 export async function createCommentValidator(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ error: "Request body is required" });
   }
 
-  const { postID, sender, content } = req.body;
+  const { postID, userID, content } = req.body;
 
-  if (!sender || typeof sender !== "string" || sender.trim() === "") {
-    return res.status(400).json({ error: "Invalid or missing sender" });
+  if (!userID || typeof userID !== "string" || userID.trim() === "") {
+    return res.status(400).json({ error: "Invalid or missing userID" });
+  }
+
+  if (!isValidObjectId(userID)) {
+    return res.status(400).json({ error: "Invalid userID format" });
+  }
+
+  const userExists = await User.findById(userID);
+  if (!userExists) {
+    return res.status(404).json({ error: "User not found" });
   }
 
   if (!content || typeof content !== "string" || content.trim() === "") {
@@ -33,7 +43,11 @@ export async function createCommentValidator(
   next();
 }
 
-export async function getCommentsValidator(req: Request, res: Response, next: NextFunction) {
+export async function getCommentsValidator(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const postID = req.params.postID;
   const postExists = await postModel.findById(postID);
 
@@ -52,8 +66,12 @@ export async function getCommentsValidator(req: Request, res: Response, next: Ne
   next();
 }
 
-export async function getCommentByIdValidator(req: Request, res: Response, next: NextFunction) {
-  const id= req.params.id as string;
+export async function getCommentByIdValidator(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const id = req.params.id as string;
 
   if (!id || typeof id !== "string") {
     return res.status(400).json({ error: "Comment ID is required" });
@@ -71,7 +89,7 @@ export async function getCommentByIdValidator(req: Request, res: Response, next:
 export async function editCommentValidator(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const id = req.params.id as string;
 
@@ -97,7 +115,7 @@ export async function editCommentValidator(
 export const deleteCommentValidation = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const id = req.params.id as string;
 
@@ -110,7 +128,10 @@ export const deleteCommentValidation = async (
   next();
 };
 
-async function validateCommentExists(req: Request, res: Response): Promise<boolean> {
+async function validateCommentExists(
+  req: Request,
+  res: Response,
+): Promise<boolean> {
   const id = req.params.id as string;
   const comment = await getCommentById(id);
 

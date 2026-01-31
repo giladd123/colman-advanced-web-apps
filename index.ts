@@ -2,8 +2,10 @@ import connectToDatabase from "./src/utils/database";
 import express from "express";
 import mongoose from "mongoose";
 import { postRouter } from "./src/routers/postRouter";
+import { authRouter } from "./src/routers/authRouter";
 import { commentRouter } from "./src/routers/commentRouter";
 import type { Server } from "http";
+import { ensureEnv } from "./src/utils/ensureEnv";
 
 let server: Server;
 
@@ -31,6 +33,7 @@ function gracefulShutdown() {
 process.loadEnvFile();
 
 const main = async () => {
+  ensureEnv(["DATABASE_URL", "JWT_SECRET", "JWT_REFRESH_SECRET"]);
   await connectToDatabase();
   console.log("Connected to DB");
   process.on("SIGINT", gracefulShutdown).on("SIGTERM", gracefulShutdown);
@@ -40,9 +43,10 @@ const main = async () => {
   app.use(express.urlencoded({ extended: true }));
   const port = process.env.PORT || 8080;
 
+  app.use("/auth", authRouter);
   app.use("/posts", postRouter);
   app.use("/comments", commentRouter);
-  
+
   server = app.listen(port, () => {
     console.log(`listening on port ${port}`);
   });
