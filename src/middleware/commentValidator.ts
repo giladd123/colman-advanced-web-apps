@@ -103,7 +103,7 @@ export async function editCommentValidator(
   const userID = (req as any).user!.userID
 
   if (comment.userID.toString() !== userID) {
-    return res.status(403).json({ error: "The user is not allowed to modify this post" });
+    return res.status(403).json({ error: "The user is not allowed to modify this commant" });
   }
 
   if (!req.body || typeof req.body !== "object") {
@@ -135,7 +135,7 @@ export const deleteCommentValidation = async (
   const userID = (req as any).user!.userID
 
   if (comment.userID.toString() !== userID) {
-    return res.status(403).json({ error: "The user is not allowed to modify this post" });
+    return res.status(403).json({ error: "The user is not allowed to modify this comment" });
   }
   next();
 };
