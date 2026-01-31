@@ -3,7 +3,7 @@ import {
   addPost,
   updatePost,
   getAllPosts,
-  getPostsBySender,
+  getPostsByUser,
 } from "../controllers/postController";
 import {
   addPostValidator,
@@ -13,9 +13,9 @@ import {
 export const postRouter = Router();
 
 postRouter.post("/", addPostValidator, async (req: Request, res) => {
-  const { title, sender, content } = req.body;
+  const { title, userID, content } = req.body;
   try {
-    await addPost(title, sender, content);
+    await addPost(title, userID, content);
     return res.status(201).json({ message: "Post added successfully" });
   } catch (error) {
     return res.status(500).json({ error: "Failed to add post" });
@@ -25,11 +25,11 @@ postRouter.post("/", addPostValidator, async (req: Request, res) => {
 postRouter.get("/", async (req: Request, res) => {
   try {
     let posts;
-    if (!req.query.sender) {
+    if (!req.query.userID) {
       posts = await getAllPosts();
     } else {
-      const sender = req.query.sender as string;
-      posts = await getPostsBySender(sender);
+      const userID = req.query.userID as string;
+      posts = await getPostsByUser(userID);
     }
     return res.status(200).json(posts);
   } catch (error) {
@@ -40,9 +40,9 @@ postRouter.get("/", async (req: Request, res) => {
 postRouter.put("/:postId", putPostValidator, async (req: Request, res) => {
   const postId = req.params.postId as string; // we know that postId is a string from the validator
 
-  const { title, sender, content } = req.body;
+  const { title, userID, content } = req.body;
   try {
-    const updatedPost = await updatePost(postId, title, sender, content);
+    const updatedPost = await updatePost(postId, title, userID, content);
     if (!updatedPost) {
       return res.status(404).json({ error: "Post not found" });
     }
