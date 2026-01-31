@@ -153,6 +153,24 @@ describe("Comment Endpoints", () => {
 
       expect(response.status).toBe(400);
     });
+
+    it("should allow a user to comment on another user's post", async () => {
+      const commentData = {
+        postID: postId, // This post belongs to testUser
+        content: "Comment from another user on your post",
+      };
+
+      // secondUser comments on testUser's post
+      const response = await request(app)
+        .post("/comments")
+        .set("Authorization", `Bearer ${secondUserAccessToken}`)
+        .send(commentData);
+
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty("_id");
+      expect(response.body.content).toBe(commentData.content);
+      expect(response.body.postID).toBe(postId);
+    });
   });
 
   describe("GET /comments/postID/:postID", () => {
