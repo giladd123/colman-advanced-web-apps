@@ -99,6 +99,12 @@ export async function editCommentValidator(
   }
 
   if (!(await validateCommentExists(req, res))) return;
+  const comment = (req as any).comment;
+  const userID = (req as any).user!.userID
+
+  if (comment.userID.toString() !== userID) {
+    return res.status(403).json({ error: "The user is not allowed to modify this post" });
+  }
 
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ error: "Request body is required" });
@@ -125,7 +131,12 @@ export const deleteCommentValidation = async (
   }
 
   if (!(await validateCommentExists(req, res))) return;
+  const comment = (req as any).comment;
+  const userID = (req as any).user!.userID
 
+  if (comment.userID.toString() !== userID) {
+    return res.status(403).json({ error: "The user is not allowed to modify this post" });
+  }
   next();
 };
 
