@@ -1,3 +1,4 @@
+//Gilad-Tidhar-325767929-Ofek-Morali-322494287
 import connectToDatabase from "./src/utils/database";
 import express from "express";
 import mongoose from "mongoose";
@@ -42,7 +43,7 @@ const main = async () => {
 
   app.use("/posts", postRouter);
   app.use("/comments", commentRouter);
-  
+
   server = app.listen(port, () => {
     console.log(`listening on port ${port}`);
   });
