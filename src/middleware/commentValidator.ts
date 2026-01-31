@@ -50,11 +50,6 @@ export async function getCommentsValidator(
   next: NextFunction,
 ) {
   const postID = req.params.postID;
-  const postExists = await postModel.findById(postID);
-
-  if (!postExists) {
-    return res.status(404).json({ error: `Post ${postID} not found` });
-  }
 
   if (!postID || typeof postID !== "string") {
     return res.status(400).json({ error: "postID query param is required" });
@@ -62,6 +57,11 @@ export async function getCommentsValidator(
 
   if (!isValidObjectId(postID)) {
     return res.status(400).json({ error: `Invalid postID: ${postID}` });
+  }
+
+  const postExists = await postModel.findById(postID);
+  if (!postExists) {
+    return res.status(404).json({ error: `Post ${postID} not found` });
   }
 
   next();
@@ -78,11 +78,11 @@ export async function getCommentByIdValidator(
     return res.status(400).json({ error: "Comment ID is required" });
   }
 
-  if (!(await validateCommentExists(req, res))) return;
-
   if (!isValidObjectId(id)) {
     return res.status(400).json({ error: `Invalid comment id: ${id}` });
   }
+
+  if (!(await validateCommentExists(req, res))) return;
 
   next();
 }
