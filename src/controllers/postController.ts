@@ -14,12 +14,10 @@ export async function getPostsByUser(userID: string) {
 export async function updatePost(
   postId: string,
   title?: string,
-  userID?: string,
   content?: string,
 ) {
   const updateData: any = {};
   if (title) updateData.title = title;
-  if (userID) updateData.userID = userID;
   if (content) updateData.content = content;
   return await postModel.findByIdAndUpdate(postId, updateData, { new: true });
 }
