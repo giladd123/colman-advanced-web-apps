@@ -11,7 +11,9 @@ export async function addPostValidator(
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ error: "Request body is required" });
   }
-  const { title, userID, content } = req.body;
+  const { title, content } = req.body;
+  const userID = (req as any).user!.userID
+
   if (!title || typeof title !== "string" || title.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing title" });
   }

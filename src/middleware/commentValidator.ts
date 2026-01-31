@@ -13,7 +13,8 @@ export async function createCommentValidator(
     return res.status(400).json({ error: "Request body is required" });
   }
 
-  const { postID, userID, content } = req.body;
+  const { postID, content } = req.body;
+  const userID = (req as any).user!.userID;
 
   if (!userID || typeof userID !== "string" || userID.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing userID" });

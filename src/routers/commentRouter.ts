@@ -12,14 +12,20 @@ import {
   editCommentValidator,
   deleteCommentValidation,
 } from "../middleware/commentValidator";
+import { Types } from "mongoose";
+import { authenticate } from "../middleware/authValidator";
 
 export const commentRouter = Router();
 
-commentRouter.post("/", createCommentValidator, async (req: Request, res) => {
-  const { postID, userID, content } = req.body;
+commentRouter.post("/",
+  authenticate,          
+  createCommentValidator,
+  async (req: Request, res) => {
+  const { postID, content } = req.body;
+  const userID = new Types.ObjectId((req as any).user!.userID);
 
   try {
-    const comment = await createComment({ userID, content, postID });
+    const comment = await createComment({ postID, userID, content });
     return res.status(201).json(comment);
   } catch (error) {
     return res.status(500).json({ error: "Failed to creaate a comment" });
@@ -60,7 +66,7 @@ commentRouter.get(
   },
 );
 
-commentRouter.put("/:id", editCommentValidator, async (req: Request, res) => {
+commentRouter.put("/:id", authenticate, editCommentValidator, async (req: Request, res) => {
   const id = req.params.id as string;
   const { content } = req.body;
 
@@ -75,6 +81,7 @@ commentRouter.put("/:id", editCommentValidator, async (req: Request, res) => {
 
 commentRouter.delete(
   "/:id",
+  authenticate,
   deleteCommentValidation,
   async (req: Request, res) => {
     const id = req.params.id as string;
