@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { postRouter } from "./src/routers/postRouter";
 import { authRouter } from "./src/routers/authRouter";
 import { commentRouter } from "./src/routers/commentRouter";
+import { userRouter } from "./src/routers/userRouter";
 import type { Server } from "http";
 import { ensureEnv } from "./src/utils/ensureEnv";
 
@@ -46,6 +47,7 @@ const main = async () => {
   app.use("/auth", authRouter);
   app.use("/posts", postRouter);
   app.use("/comments", commentRouter);
+  app.use("/users", userRouter);
 
   server = app.listen(port, () => {
     console.log(`listening on port ${port}`);
