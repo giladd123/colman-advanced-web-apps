@@ -20,6 +20,35 @@ GET http://localhost:8080/posts?sender=example_sender
 PUT http://localhost:8080/posts/<postId>  
 Content-Type: application/json  
 
+
+### Create comment
+POST http://localhost:8080/comments
+Content-Type: application/json
+
 {
-    "title": "Example Title to Update",
+  "postID": "postId",
+  "content": "Nice post!",
+  "sender": "Ofek"
 }
+
+
+### Get comments by postID
+GET http://localhost:8080/comments/postID/:postID
+
+
+### Get comments by commentID
+GET http://localhost:8080/comments/commentID/:id
+
+
+### Update comment
+PUT http://localhost:8080/comments/:id
+Content-Type: application/json
+
+{
+  "content": "Updated comment",
+  "sender": "Ofek2"
+}
+
+
+### Delete comment
+DELETE http://localhost:8080/comments/:id
