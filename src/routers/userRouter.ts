@@ -13,7 +13,7 @@ import { authenticate } from "../middleware/authValidator";
 
 export const userRouter = Router();
 
-userRouter.get("/", authenticate, async (req: Request, res) => {
+userRouter.get("/", async (req: Request, res) => {
   try {
     const users = await getAllUsers();
     const sanitizedUsers = users.map((user) => {
@@ -28,24 +28,19 @@ userRouter.get("/", authenticate, async (req: Request, res) => {
   }
 });
 
-userRouter.get(
-  "/:id",
-  authenticate,
-  getUserByIdValidator,
-  async (req: Request, res) => {
-    const id = req.params.id as string;
+userRouter.get("/:id", getUserByIdValidator, async (req: Request, res) => {
+  const id = req.params.id as string;
 
-    try {
-      const user = (req as any).targetUser;
-      const { password, refreshTokens, ...userWithoutSensitiveData } =
-        user.toObject();
-      return res.status(200).json(userWithoutSensitiveData);
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: `Failed to fetch user ${id}` });
-    }
-  },
-);
+  try {
+    const user = (req as any).targetUser;
+    const { password, refreshTokens, ...userWithoutSensitiveData } =
+      user.toObject();
+    return res.status(200).json(userWithoutSensitiveData);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: `Failed to fetch user ${id}` });
+  }
+});
 
 userRouter.put(
   "/:id",

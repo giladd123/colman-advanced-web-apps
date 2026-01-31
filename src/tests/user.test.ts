@@ -46,10 +46,8 @@ afterAll(async () => {
 
 describe("User Endpoints", () => {
   describe("GET /users", () => {
-    it("should get all users when authenticated", async () => {
-      const response = await request(app)
-        .get("/users")
-        .set("Authorization", `Bearer ${accessToken}`);
+    it("should get all users without authentication (public endpoint)", async () => {
+      const response = await request(app).get("/users");
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -61,29 +59,11 @@ describe("User Endpoints", () => {
         expect(user).not.toHaveProperty("refreshTokens");
       });
     });
-
-    it("should fail without authentication", async () => {
-      const response = await request(app).get("/users");
-
-      expect(response.status).toBe(401);
-      expect(response.body.error).toBe("Unauthorized");
-    });
-
-    it("should fail with invalid token", async () => {
-      const response = await request(app)
-        .get("/users")
-        .set("Authorization", "Bearer invalid-token");
-
-      expect(response.status).toBe(401);
-      expect(response.body.error).toBe("Invalid token");
-    });
   });
 
   describe("GET /users/:id", () => {
-    it("should get a specific user by ID when authenticated", async () => {
-      const response = await request(app)
-        .get(`/users/${userId}`)
-        .set("Authorization", `Bearer ${accessToken}`);
+    it("should get a specific user by ID without authentication (public endpoint)", async () => {
+      const response = await request(app).get(`/users/${userId}`);
 
       expect(response.status).toBe(200);
       expect(response.body._id).toBe(userId);
@@ -95,27 +75,16 @@ describe("User Endpoints", () => {
       expect(response.body).not.toHaveProperty("refreshTokens");
     });
 
-    it("should fail without authentication", async () => {
-      const response = await request(app).get(`/users/${userId}`);
-
-      expect(response.status).toBe(401);
-      expect(response.body.error).toBe("Unauthorized");
-    });
-
     it("should return 404 for non-existent user", async () => {
       const fakeUserId = new mongoose.Types.ObjectId().toString();
-      const response = await request(app)
-        .get(`/users/${fakeUserId}`)
-        .set("Authorization", `Bearer ${accessToken}`);
+      const response = await request(app).get(`/users/${fakeUserId}`);
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe(`The user ${fakeUserId} does not exist`);
     });
 
     it("should fail with invalid user ID format", async () => {
-      const response = await request(app)
-        .get("/users/invalid-id")
-        .set("Authorization", `Bearer ${accessToken}`);
+      const response = await request(app).get("/users/invalid-id");
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe("Invalid user id: invalid-id");
