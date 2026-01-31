@@ -2,6 +2,7 @@ import connectToDatabase from "./src/utils/database";
 import express from "express";
 import mongoose from "mongoose";
 import { postRouter } from "./src/routers/postRouter";
+import { commentRouter } from "./src/routers/commentRouter";
 import type { Server } from "http";
 
 let server: Server;
@@ -40,6 +41,8 @@ const main = async () => {
   const port = process.env.PORT || 8080;
 
   app.use("/posts", postRouter);
+  app.use("/comments", commentRouter);
+  
   server = app.listen(port, () => {
     console.log(`listening on port ${port}`);
   });
