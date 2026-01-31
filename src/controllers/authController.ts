@@ -20,7 +20,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     }
 
     const payload: JwtPayload = {
-      id: user._id.toString(),
+      userID: user._id.toString(),
       username: user.username,
       email: user.email,
     };
@@ -54,7 +54,7 @@ export async function register(
     await newUser.save();
 
     const payload: JwtPayload = {
-      id: newUser._id.toString(),
+      userID: newUser._id.toString(),
       username: newUser.username,
       email: newUser.email,
     };
@@ -82,7 +82,7 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
       return res.status(401).json({ error: "Invalid refresh token" });
     }
 
-    const user = await User.findById(payload.id);
+    const user = await User.findById(payload.userID);
     if (!user) {
       return res.status(401).json({ error: "Invalid refresh token" });
     }
@@ -100,7 +100,7 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
 
     // Generate new tokens
     const newPayload: JwtPayload = {
-      id: user._id.toString(),
+      userID: user._id.toString(),
       username: user.username,
       email: user.email,
     };
@@ -126,7 +126,7 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
   try {
     const payload = validateRefreshToken(refreshToken);
     if (payload) {
-      const user = await User.findById(payload.id);
+      const user = await User.findById(payload.userID);
       if (user) {
         user.refreshTokens = user.refreshTokens.filter(
           (t) => t !== refreshToken,
