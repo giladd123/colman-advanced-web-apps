@@ -7,7 +7,7 @@ import { commentRouter } from "./routers/commentRouter";
 import { userRouter } from "./routers/userRouter";
 import { ensureEnv } from "./utils/ensureEnv";
 import swaggerUi from "swagger-ui-express";
-import swaggerFile from "../swagger-output.json"; 
+import swaggerFile from "../swagger-output.json";
 
 const initApp = (): Promise<Express> => {
   return new Promise((resolve, reject) => {
