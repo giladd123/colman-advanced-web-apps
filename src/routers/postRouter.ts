@@ -17,8 +17,8 @@ postRouter.post("/", authenticate, addPostValidator, async (req: Request, res) =
   const { title, content } = req.body;
   const userID = (req as any).user!.userID
   try {
-    await addPost(title, userID, content);
-    return res.status(201).json({ message: "Post added successfully" });
+    const newPost = await addPost(title, userID, content);
+    return res.status(201).json(newPost);
   } catch (error) {
     return res.status(500).json({ error: "Failed to add post" });
   }
@@ -48,7 +48,7 @@ postRouter.put("/:postId",authenticate, putPostValidator, async (req: Request, r
     if (!updatedPost) {
       return res.status(404).json({ error: "Post not found" });
     }
-    return res.status(200).json({ message: "Post updated successfully" });
+    return res.status(200).json(updatedPost);
   } catch (error) {
     return res.status(500).json({ error: "Failed to update post" });
   }

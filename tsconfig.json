@@ -9,5 +9,5 @@
     "outDir": "./dist",
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "index.ts", "swagger.js"]
+  "include": ["src/**/*", "server.ts", "swagger.ts"]
 }

@@ -8,7 +8,10 @@ export interface JwtPayload {
 
 export function signAuthToken(payload: JwtPayload): string {
   const jwtSecret = process.env.JWT_SECRET!;
-  return jwt.sign(payload, jwtSecret, { expiresIn: "15m" });
+  const expiresIn = process.env.TOKEN_EXPIRATION || "15m";
+  return jwt.sign(payload, jwtSecret, {
+    expiresIn: expiresIn as jwt.SignOptions["expiresIn"],
+  });
 }
 
 export function signRefreshToken(payload: JwtPayload): string {
