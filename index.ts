@@ -6,6 +6,8 @@ import { authRouter } from "./src/routers/authRouter";
 import { commentRouter } from "./src/routers/commentRouter";
 import type { Server } from "http";
 import { ensureEnv } from "./src/utils/ensureEnv";
+import swaggerUi from "swagger-ui-express";
+import swaggerFile from "./swagger-output.json"; 
 
 let server: Server;
 
@@ -46,6 +48,7 @@ const main = async () => {
   app.use("/auth", authRouter);
   app.use("/posts", postRouter);
   app.use("/comments", commentRouter);
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
   server = app.listen(port, () => {
     console.log(`listening on port ${port}`);

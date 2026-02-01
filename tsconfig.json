@@ -6,7 +6,8 @@
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*", "index.ts"]
+  "include": ["src/**/*", "index.ts", "swagger.js"]
 }

@@ -1,10 +1,11 @@
+#### Posts
 ### Add a post  
 POST http://localhost:8080/posts  
 Content-Type: application/json  
+Authorization: Bearer {{accessToken}}
 
 {
     "title": "Example Title",
-    "sender": "example_sender",
     "content": "Example content for the post"
 }
 
@@ -19,16 +20,18 @@ GET http://localhost:8080/posts?sender=example_sender
 ### Update a post  
 PUT http://localhost:8080/posts/<postId>  
 Content-Type: application/json  
+Authorization: Bearer {{accessToken}}
 
 
+#### Comments
 ### Create comment
 POST http://localhost:8080/comments
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "postID": "postId",
   "content": "Nice post!",
-  "sender": "Ofek"
 }
 
 
@@ -43,12 +46,51 @@ GET http://localhost:8080/comments/commentID/:id
 ### Update comment
 PUT http://localhost:8080/comments/:id
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "content": "Updated comment",
-  "sender": "Ofek2"
 }
 
 
 ### Delete comment
 DELETE http://localhost:8080/comments/:id
+Authorization: Bearer {{accessToken}}
+
+#### Authorization
+
+### Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "ofekcohen@gmail.com",
+  "password": "123456"
+}
+
+### Register
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "username": "ofek",
+  "email": "ofek@gmail.com",
+  "password": "123456"
+}
+
+### Refresh token
+POST http://localhost:3000/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Logout
+POST http://localhost:3000/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
