@@ -6,6 +6,8 @@ import { authRouter } from "./routers/authRouter";
 import { commentRouter } from "./routers/commentRouter";
 import { userRouter } from "./routers/userRouter";
 import { ensureEnv } from "./utils/ensureEnv";
+import swaggerUi from "swagger-ui-express";
+import swaggerFile from "../swagger-output.json";
 
 const initApp = (): Promise<Express> => {
   return new Promise((resolve, reject) => {
@@ -30,6 +32,7 @@ const initApp = (): Promise<Express> => {
         app.use("/posts", postRouter);
         app.use("/comments", commentRouter);
         app.use("/users", userRouter);
+        app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
         resolve(app);
       })
