@@ -25,7 +25,7 @@ commentRouter.post("/",
   const userID = new Types.ObjectId((req as any).user!.userID);
 
   try {
-    const comment = await createComment({ postID, userID, content });
+    const comment = await createComment({ postID, userID, content, createdAt: new Date(), updatedAt: new Date() });
     return res.status(201).json(comment);
   } catch (error) {
     return res.status(500).json({ error: "Failed to creaate a comment" });

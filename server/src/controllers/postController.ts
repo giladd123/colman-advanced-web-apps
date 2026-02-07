@@ -21,3 +21,7 @@ export async function updatePost(
   if (content) updateData.content = content;
   return await postModel.findByIdAndUpdate(postId, updateData, { new: true });
 }
+
+export async function deletePost(postId: string) {
+  return await postModel.findByIdAndDelete(postId);
+}

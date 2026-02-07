@@ -89,3 +89,46 @@ export async function putPostValidator(
   }
   next();
 }
+
+export async function deletePostValidator(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const userID = (req as any).user!.userID;
+  if (typeof userID !== "string" || userID.trim() === "") {
+    return res.status(400).json({ error: "Invalid userID" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(userID)) {
+    return res.status(400).json({ error: "Invalid userID format" });
+  }
+
+  const userExists = await User.findById(userID);
+  if (!userExists) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  if (!("postId" in req.params)) {
+    return res.status(400).json({ error: "Post ID parameter is required" });
+  }
+  if (
+    Array.isArray(req.params.postId) ||
+    typeof req.params.postId !== "string" ||
+    req.params.postId.trim() === ""
+  ) {
+    return res.status(400).json({ error: "Invalid postId" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
+    return res.status(400).json({ error: "Invalid postId format" });
+  }
+
+  const post = await postModel.findById(req.params.postId);
+  if (post === null) {
+    return res.status(404).json({ error: "Post not found" });
+  }
+
+  if (post.userID.toString() !== userID) {
+    return res.status(403).json({ error: "The user is not allowed to delete this post" });
+  }
+  next();
+}
