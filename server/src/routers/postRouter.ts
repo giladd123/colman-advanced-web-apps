@@ -4,10 +4,12 @@ import {
   updatePost,
   getAllPosts,
   getPostsByUser,
+  deletePost,
 } from "../controllers/postController";
 import {
   addPostValidator,
   putPostValidator,
+  deletePostValidator,
 } from "../middleware/postValidator";
 import { authenticate } from "../middleware/authValidator";
 
@@ -51,5 +53,19 @@ postRouter.put("/:postId",authenticate, putPostValidator, async (req: Request, r
     return res.status(200).json(updatedPost);
   } catch (error) {
     return res.status(500).json({ error: "Failed to update post" });
+  }
+});
+
+postRouter.delete("/:postId", authenticate, deletePostValidator, async (req: Request, res) => {
+  const postId = req.params.postId as string; // we know that postId is a string from the validator
+
+  try {
+    const deletedPost = await deletePost(postId);
+    if (!deletedPost) {
+      return res.status(404).json({ error: `Post ${postId} not found` });
+    }
+    return res.status(200).json({ message: `Post ${postId} deleted successfully`, post: deletedPost });
+  } catch (error) {
+    return res.status(500).json({ error: `Failed to delete post: ${postId}` });
   }
 });

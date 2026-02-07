@@ -6,6 +6,7 @@ export interface IUser {
   username: string;
   password: string;
   refreshTokens: string[];
+  profileImage?: string;
 }
 
 export interface IUserMethods {
@@ -34,7 +35,11 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>({
     type: [String],
     default: [],
   },
-});
+  profileImage: {
+    type: String,
+    required: false,
+  },
+}, { timestamps: true });
 
 // Hash password before saving
 userSchema.pre("save", async function () {
