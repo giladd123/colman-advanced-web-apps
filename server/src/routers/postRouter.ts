@@ -6,6 +6,7 @@ import {
   getPostsByUser,
   deletePost,
 } from "../controllers/postController";
+import { toggleLike } from "../controllers/likeController";
 import {
   addPostValidator,
   putPostValidator,
@@ -67,5 +68,17 @@ postRouter.delete("/:postId", authenticate, deletePostValidator, async (req: Req
     return res.status(200).json({ message: `Post ${postId} deleted successfully`, post: deletedPost });
   } catch (error) {
     return res.status(500).json({ error: `Failed to delete post: ${postId}` });
+  }
+});
+
+// Like/unlike a post (toggle)
+postRouter.post("/:postId/like", authenticate, async (req: Request, res) => {
+  const postId = req.params.postId as string;
+  const userID = (req as any).user!.userID;
+  try {
+    const result = await toggleLike(postId, userID);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to toggle like" });
   }
 });

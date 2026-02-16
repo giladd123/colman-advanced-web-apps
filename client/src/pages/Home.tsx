@@ -1,47 +1,113 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Container, Button, Typography, Box } from "@mui/material";
-import { useAuth } from "../context/AuthContext";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Container, Box, CircularProgress, Alert } from "@mui/material";
+import PostList from "../components/PostList";
+import type { Post } from "../types/post";
+import type { User } from "../types/user";
+import { useAuth } from "../context/useAuth";
+import { getUserIdFromToken } from "../utils/usersUtil";
+
+const API_BASE = "http://localhost:3000";
+
 
 const Home: React.FC = () => {
-  const navigate = useNavigate();
-  const { logout, isAuthenticated } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const { token } = useAuth();
 
-  React.useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/");
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [postsResp, usersResp] = await Promise.all([
+          axios.get<Post[]>(`${API_BASE}/posts`),
+          axios.get<User[]>(`${API_BASE}/users`),
+        ]);
+        setPosts(postsResp.data.reverse?.() || postsResp.data);
+        setUsers(usersResp.data);
+        const userId = getUserIdFromToken(token);
+        const likedPosts = postsResp.data.filter(p => p.likes.includes(userId || "")).map(p => p._id);
+        setLikedPosts(new Set(likedPosts));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleLike = async (postId: string) => {
+    setPosts((prev) =>
+      prev.map((p) =>
+        p._id === postId
+          ? { ...p, likesCount: p.likesCount + (likedPosts.has(postId) ? -1 : 1) }
+          : p,
+      ),
+    );
+
+    setLikedPosts((prev) => {
+      const next = new Set(prev);
+      if (next.has(postId)) next.delete(postId);
+      else next.add(postId);
+      return next;
+    });
+
+    try {
+      await axios.post(
+        `${API_BASE}/posts/${postId}/like`,
+        {},
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        },
+      );
+    } catch (error) {
+      // revert on failure
+      console.error(error);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p._id === postId
+            ? { ...p, likesCount: p.likesCount + (likedPosts.has(postId) ? 1 : -1) }
+            : p,
+        ),
+      );
+      setLikedPosts((prev) => {
+        const next = new Set(prev);
+        if (next.has(postId)) next.delete(postId);
+        else next.add(postId);
+        return next;
+      });
     }
-  }, [isAuthenticated, navigate]);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 4 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 4,
-          }}
-        >
-          <Typography variant="h3" component="h1" sx={{ fontWeight: 600 }}>
-            Feed
-          </Typography>
-          <Button variant="contained" color="error" onClick={handleLogout}>
-            Logout
-          </Button>
-        </Box>
-
-        <Typography variant="body1" color="textSecondary">
-          Posts will be displayed here
-        </Typography>
-      </Box>
-    </Container>
+    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <Container
+        maxWidth="lg"
+        sx={{
+          py: 3,
+          flex: 1,
+          overflowY: "auto",
+          maxHeight: "calc(100vh - 64px)",
+        }}
+      >
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        {!loading && !error && (
+          <PostList users={users} posts={posts} likedPosts={likedPosts} onLike={handleLike} />
+        )}
+      </Container>
+    </Box>
   );
 };
 

@@ -1,13 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { AuthContext } from "./useAuth";
 
-interface AuthContextType {
-  token: string | null;
-  login: (token: string) => void;
-  logout: () => void;
-  isAuthenticated: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
@@ -15,6 +8,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const storedToken = localStorage.getItem("authToken");
     if (storedToken) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(storedToken);
     }
   }, []);
@@ -36,10 +30,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return context;
-};

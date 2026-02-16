@@ -14,17 +14,17 @@
 }
 
 html, body {
-  height: 100vh;
+  height: 100%;
   width: 100%;
-  overflow: hidden;
   margin: 0;
   padding: 0;
+  overflow-y: auto;
 }
 
 #root {
-  height: 100vh;
+  min-height: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow: auto;
 }
 
 a {
@@ -38,10 +38,8 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 h1 {

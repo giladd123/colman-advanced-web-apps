@@ -10,9 +10,13 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
-import { useAuth } from "../context/AuthContext";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { authService } from "../services/authService";
+import { useAuth } from "../context/useAuth";
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -26,6 +30,8 @@ const Auth: React.FC = () => {
     email: "",
     password: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -161,12 +167,30 @@ const Auth: React.FC = () => {
             <TextField
               label="Password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={handleInputChange}
               fullWidth
               placeholder="At least 6 characters"
               required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      onClick={() => setShowPassword((s) => !s)}
+                      edge="end"
+                      size="small"
+                    >
+                      {showPassword ? (
+                        <VisibilityOff fontSize="small" />
+                      ) : (
+                        <Visibility fontSize="small" />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
 
             <Button

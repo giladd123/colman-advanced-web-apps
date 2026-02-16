@@ -1,7 +1,7 @@
 #root {
-  height: 100vh;
+  min-height: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow: auto;
 }
 @keyframes logo-spin {
   from {

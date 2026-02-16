@@ -17,18 +17,23 @@ interface AuthResponse {
   token: string;
 }
 
+interface ServerAuthResponse {
+  accessToken: string;
+  refreshToken?: string;
+}
+
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
 });
 
 export const authService = {
   login: async (credentials: LoginPayload): Promise<AuthResponse> => {
-    const response = await axiosInstance.post<AuthResponse>("/auth/login", credentials);
-    return response.data;
+    const response = await axiosInstance.post<ServerAuthResponse>("/auth/login", credentials);
+    return { token: response.data.accessToken };
   },
 
   register: async (credentials: RegisterPayload): Promise<AuthResponse> => {
-    const response = await axiosInstance.post<AuthResponse>("/auth/register", credentials);
-    return response.data;
+    const response = await axiosInstance.post<ServerAuthResponse>("/auth/register", credentials);
+    return { token: response.data.accessToken };
   },
 };

@@ -1,8 +1,11 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
+import Comments from "./pages/Comments";
+import Navbar from "./components/Navbar";
 import "./App.css";
+import { useAuth } from "./context/useAuth";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -10,19 +13,26 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 function AppContent() {
+  const location = useLocation();
+  const showNavbar = !location.pathname.startsWith("/auth");
+
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/auth" />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route
-        path="/home"
-        element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+    <>
+      {showNavbar && <Navbar />}
+      <Routes>
+        <Route path="/" element={<Navigate to="/auth" />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/posts/:postId/comments" element={<Comments />} />
+      </Routes>
+    </>
   );
 }
 
