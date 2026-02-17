@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Container, Box, CircularProgress, Alert } from "@mui/material";
 import PostList from "../components/PostList";
 import type { Post } from "../types/post";
 import type { User } from "../types/user";
 import { useAuth } from "../context/useAuth";
 import { getUserIdFromToken } from "../utils/usersUtil";
-import API_BASE_URL from "../config/api";
+import { apiClient } from "../services/api";
 
 const Home: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -22,8 +21,8 @@ const Home: React.FC = () => {
       setError(null);
       try {
         const [postsResp, usersResp] = await Promise.all([
-          axios.get<Post[]>(`${API_BASE_URL}/posts`),
-          axios.get<User[]>(`${API_BASE_URL}/users`),
+          apiClient.get<Post[]>(`/posts`),
+          apiClient.get<User[]>(`/users`),
         ]);
         setPosts(postsResp.data.reverse?.() || postsResp.data);
         setUsers(usersResp.data);
@@ -59,8 +58,8 @@ const Home: React.FC = () => {
     });
 
     try {
-      await axios.post(
-        `${API_BASE_URL}/posts/${postId}/like`,
+      await apiClient.post(
+        `/posts/${postId}/like`,
         {},
         {
           headers: accessToken
