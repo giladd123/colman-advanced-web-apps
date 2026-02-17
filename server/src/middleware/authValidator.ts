@@ -84,3 +84,18 @@ export async function validateRefreshToken(
   }
   next();
 }
+
+export async function validateGoogleCredential(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.body || typeof req.body !== "object") {
+    return res.status(400).json({ error: "Invalid request body" });
+  }
+  const { credential } = req.body;
+  if (!credential || typeof credential !== "string" || credential.trim() === "") {
+    return res.status(400).json({ error: "Google credential is required" });
+  }
+  next();
+}

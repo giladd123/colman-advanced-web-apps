@@ -27,7 +27,7 @@ beforeAll(async () => {
 
   // Register the main test user
   const registerResponse = await request(app)
-    .post("/auth/register")
+    .post("/api/auth/register")
     .send(testUser);
 
   accessToken = registerResponse.body.accessToken;
@@ -37,7 +37,7 @@ beforeAll(async () => {
   userId = user!._id.toString();
 
   // Register a second user for some tests
-  await request(app).post("/auth/register").send(secondUser);
+  await request(app).post("/api/auth/register").send(secondUser);
 });
 
 afterAll(async () => {
@@ -47,7 +47,7 @@ afterAll(async () => {
 describe("User Endpoints", () => {
   describe("GET /users", () => {
     it("should get all users without authentication (public endpoint)", async () => {
-      const response = await request(app).get("/users");
+      const response = await request(app).get("/api/users");
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -63,7 +63,7 @@ describe("User Endpoints", () => {
 
   describe("GET /users/:id", () => {
     it("should get a specific user by ID without authentication (public endpoint)", async () => {
-      const response = await request(app).get(`/users/${userId}`);
+      const response = await request(app).get(`/api/users/${userId}`);
 
       expect(response.status).toBe(200);
       expect(response.body._id).toBe(userId);
@@ -77,14 +77,14 @@ describe("User Endpoints", () => {
 
     it("should return 404 for non-existent user", async () => {
       const fakeUserId = new mongoose.Types.ObjectId().toString();
-      const response = await request(app).get(`/users/${fakeUserId}`);
+      const response = await request(app).get(`/api/users/${fakeUserId}`);
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe(`The user ${fakeUserId} does not exist`);
     });
 
     it("should fail with invalid user ID format", async () => {
-      const response = await request(app).get("/users/invalid-id");
+      const response = await request(app).get("/api/users/invalid-id");
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe("Invalid user id: invalid-id");
@@ -98,7 +98,7 @@ describe("User Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/users/${userId}`)
+        .put(`/api/users/${userId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -114,7 +114,7 @@ describe("User Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/users/${userId}`)
+        .put(`/api/users/${userId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -123,7 +123,7 @@ describe("User Endpoints", () => {
 
       // Revert email for subsequent tests
       await request(app)
-        .put(`/users/${userId}`)
+        .put(`/api/users/${userId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send({ email: testUser.email });
     });
@@ -134,7 +134,7 @@ describe("User Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/users/${userId}`)
+        .put(`/api/users/${userId}`)
         .send(updateData);
 
       expect(response.status).toBe(401);
@@ -151,7 +151,7 @@ describe("User Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/users/${secondUserId}`)
+        .put(`/api/users/${secondUserId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -165,7 +165,7 @@ describe("User Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/users/${userId}`)
+        .put(`/api/users/${userId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -179,7 +179,7 @@ describe("User Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/users/${userId}`)
+        .put(`/api/users/${userId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -193,7 +193,7 @@ describe("User Endpoints", () => {
       };
 
       const response = await request(app)
-        .put("/users/invalid-id")
+        .put("/api/users/invalid-id")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -208,7 +208,7 @@ describe("User Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/users/${fakeUserId}`)
+        .put(`/api/users/${fakeUserId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -219,7 +219,7 @@ describe("User Endpoints", () => {
 
   describe("DELETE /users/:id", () => {
     it("should fail to delete without authentication", async () => {
-      const response = await request(app).delete(`/users/${userId}`);
+      const response = await request(app).delete(`/api/users/${userId}`);
 
       expect(response.status).toBe(401);
       expect(response.body.error).toBe("Unauthorized");
@@ -231,7 +231,7 @@ describe("User Endpoints", () => {
       const secondUserId = secondUserDoc!._id.toString();
 
       const response = await request(app)
-        .delete(`/users/${secondUserId}`)
+        .delete(`/api/users/${secondUserId}`)
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(response.status).toBe(403);
@@ -240,7 +240,7 @@ describe("User Endpoints", () => {
 
     it("should fail with invalid user ID format", async () => {
       const response = await request(app)
-        .delete("/users/invalid-id")
+        .delete("/api/users/invalid-id")
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(response.status).toBe(400);
@@ -251,7 +251,7 @@ describe("User Endpoints", () => {
       const fakeUserId = new mongoose.Types.ObjectId().toString();
 
       const response = await request(app)
-        .delete(`/users/${fakeUserId}`)
+        .delete(`/api/users/${fakeUserId}`)
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(response.status).toBe(404);
@@ -267,7 +267,7 @@ describe("User Endpoints", () => {
       };
 
       const registerResponse = await request(app)
-        .post("/auth/register")
+        .post("/api/auth/register")
         .send(userToDelete);
 
       const deleteToken = registerResponse.body.accessToken;
@@ -275,7 +275,7 @@ describe("User Endpoints", () => {
       const deleteUserId = userDoc!._id.toString();
 
       const response = await request(app)
-        .delete(`/users/${deleteUserId}`)
+        .delete(`/api/users/${deleteUserId}`)
         .set("Authorization", `Bearer ${deleteToken}`);
 
       expect(response.status).toBe(200);
