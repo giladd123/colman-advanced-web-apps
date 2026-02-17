@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const API_BASE_URL = "http://localhost:3000";
+import API_BASE_URL from "../config/api";
 
 interface LoginPayload {
   email: string;
@@ -14,12 +13,8 @@ interface RegisterPayload {
 }
 
 interface AuthResponse {
-  token: string;
-}
-
-interface ServerAuthResponse {
   accessToken: string;
-  refreshToken?: string;
+  refreshToken: string;
 }
 
 const axiosInstance = axios.create({
@@ -28,12 +23,32 @@ const axiosInstance = axios.create({
 
 export const authService = {
   login: async (credentials: LoginPayload): Promise<AuthResponse> => {
-    const response = await axiosInstance.post<ServerAuthResponse>("/auth/login", credentials);
-    return { token: response.data.accessToken };
+    const response = await axiosInstance.post<AuthResponse>(
+      "/auth/login",
+      credentials,
+    );
+    return response.data;
   },
 
   register: async (credentials: RegisterPayload): Promise<AuthResponse> => {
-    const response = await axiosInstance.post<ServerAuthResponse>("/auth/register", credentials);
-    return { token: response.data.accessToken };
+    const response = await axiosInstance.post<AuthResponse>(
+      "/auth/register",
+      credentials,
+    );
+    return response.data;
+  },
+
+  googleSignIn: async (credential: string): Promise<AuthResponse> => {
+    const response = await axiosInstance.post<AuthResponse>("/auth/google", {
+      credential,
+    });
+    return response.data;
+  },
+
+  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+    const response = await axiosInstance.post<AuthResponse>("/auth/refresh", {
+      refreshToken,
+    });
+    return response.data;
   },
 };

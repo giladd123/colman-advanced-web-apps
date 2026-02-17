@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
 import connectToDatabase from "./utils/database";
 import express, { Express } from "express";
 import { postRouter } from "./routers/postRouter";
@@ -8,7 +10,6 @@ import { userRouter } from "./routers/userRouter";
 import { ensureEnv } from "./utils/ensureEnv";
 import swaggerUi from "swagger-ui-express";
 import swaggerFile from "../swagger-output.json";
-import cors from "cors";
 
 const initApp = (): Promise<Express> => {
   return new Promise((resolve, reject) => {
@@ -19,27 +20,40 @@ const initApp = (): Promise<Express> => {
       dotenv.config();
     }
 
-    ensureEnv(["DATABASE_URL", "JWT_SECRET", "JWT_REFRESH_SECRET"]);
+    ensureEnv(["DATABASE_URL", "JWT_SECRET", "JWT_REFRESH_SECRET", "GOOGLE_CLIENT_ID"]);
 
     connectToDatabase()
       .then(() => {
         console.log("Connected to DB");
 
         const app = express();
-        app.use(
-          cors({
-           origin: process.env.CLIENT_ORIGIN,
-           credentials: true
-          })
-        );
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
 
-        app.use("/auth", authRouter);
-        app.use("/posts", postRouter);
-        app.use("/comments", commentRouter);
-        app.use("/users", userRouter);
-        app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
+        // Ensure uploads directory exists
+        const uploadsDir = path.join(__dirname, "../../uploads");
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        // Serve uploaded files
+        app.use("/uploads", express.static(uploadsDir));
+
+        // API routes
+        app.use("/api/auth", authRouter);
+        app.use("/api/posts", postRouter);
+        app.use("/api/comments", commentRouter);
+        app.use("/api/users", userRouter);
+        app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
+
+        // Serve frontend in production
+        if (process.env.NODE_ENV === "production") {
+          const clientBuildPath = path.join(__dirname, "../../client/dist");
+          app.use(express.static(clientBuildPath));
+          app.get("*", (_req, res) => {
+            res.sendFile(path.join(clientBuildPath, "index.html"));
+          });
+        }
 
         resolve(app);
       })

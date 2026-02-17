@@ -6,10 +6,42 @@ import Comments from "./pages/Comments";
 import Navbar from "./components/Navbar";
 import "./App.css";
 import { useAuth } from "./context/useAuth";
+import { useState, useEffect } from "react";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
+  const { isAuthenticated, validateAndRefreshToken } = useAuth();
+  const [isValidating, setIsValidating] = useState(true);
+  const [isValid, setIsValid] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkAuth = async () => {
+      if (!isAuthenticated) {
+        if (!cancelled) {
+          setIsValid(false);
+          setIsValidating(false);
+        }
+        return;
+      }
+
+      const valid = await validateAndRefreshToken();
+      if (!cancelled) {
+        setIsValid(valid);
+        setIsValidating(false);
+      }
+    };
+
+    checkAuth();
+
+    return () => { cancelled = true; };
+  }, [isAuthenticated, validateAndRefreshToken]);
+
+  if (isValidating) {
+    return <div>Loading...</div>;
+  }
+
+  return isValid ? <>{children}</> : <Navigate to="/auth" />;
 };
 
 function AppContent() {

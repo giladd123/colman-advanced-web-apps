@@ -5,19 +5,18 @@ import { useAuth } from "../context/useAuth";
 import { getUserIdFromToken } from "../utils/usersUtil";
 import axios from "axios";
 import type { User } from "../types/user";
-
-const API_BASE = "http://localhost:3000";
+import API_BASE_URL from "../config/api";
 
 const Navbar: React.FC = () => {
-  const { token } = useAuth();
-  const userId = getUserIdFromToken(token);
+  const { accessToken } = useAuth();
+  const userId = getUserIdFromToken(accessToken);
   const navigate = useNavigate();
   const [username, setUsername] = React.useState<string>("User");
   const [profileImage, setProfileImage] = React.useState<string>("");
   
   useEffect(() => {
   const fetchData = async () => {
-      const user = await axios.get<User>(`${API_BASE}/users/${userId}`).then(res => res.data);
+      const user = await axios.get<User>(`${API_BASE_URL}/users/${userId}`).then(res => res.data);
       const username = user?.username || "User";
       const profileImage = user?.profileImage || "";
       setUsername(username);
