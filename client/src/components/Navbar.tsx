@@ -1,11 +1,17 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppBar, Toolbar, Avatar, Typography, Box, IconButton } from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  Avatar,
+  Typography,
+  Box,
+  IconButton,
+} from "@mui/material";
 import { useAuth } from "../context/useAuth";
 import { getUserIdFromToken } from "../utils/usersUtil";
-import axios from "axios";
 import type { User } from "../types/user";
-import API_BASE_URL from "../config/api";
+import { apiClient } from "../services/api";
 
 const Navbar: React.FC = () => {
   const { accessToken } = useAuth();
@@ -13,10 +19,12 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [username, setUsername] = React.useState<string>("User");
   const [profileImage, setProfileImage] = React.useState<string>("");
-  
+
   useEffect(() => {
-  const fetchData = async () => {
-      const user = await axios.get<User>(`${API_BASE_URL}/users/${userId}`).then(res => res.data);
+    const fetchData = async () => {
+      const user = await apiClient
+        .get<User>(`/users/${userId}`)
+        .then((res) => res.data);
       const username = user?.username || "User";
       const profileImage = user?.profileImage || "";
       setUsername(username);
@@ -35,7 +43,13 @@ const Navbar: React.FC = () => {
 
   return (
     <AppBar position="static" sx={{ boxShadow: 1, bgcolor: "#8134af" }}>
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         {/* Brand: Vibely + Logo */}
         <Box
           onClick={handleLogoClick}
@@ -55,7 +69,8 @@ const Navbar: React.FC = () => {
               width: 38,
               height: 38,
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #f58529 0%, #dd2a7b 50%, #8134af 100%)",
+              background:
+                "linear-gradient(135deg, #f58529 0%, #dd2a7b 50%, #8134af 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -86,7 +101,7 @@ const Navbar: React.FC = () => {
             sx={{
               fontWeight: 700,
               letterSpacing: 1.2,
-              fontFamily: 'Montserrat, Arial, sans-serif',
+              fontFamily: "Montserrat, Arial, sans-serif",
               color: "#fff",
               fontSize: { xs: 18, sm: 22 },
             }}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { AuthContext } from "./useAuth";
 import { authService } from "../services/authService";
 
@@ -11,17 +11,46 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [accessToken, setAccessToken] = useState<string | null>(() => localStorage.getItem("accessToken"));
-  const [refreshToken, setRefreshToken] = useState<string | null>(() => localStorage.getItem("refreshToken"));
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [accessToken, setAccessToken] = useState<string | null>(() =>
+    localStorage.getItem("accessToken"),
+  );
+  const [refreshToken, setRefreshToken] = useState<string | null>(() =>
+    localStorage.getItem("refreshToken"),
+  );
   const refreshPromiseRef = useRef<Promise<boolean> | null>(null);
 
-  const login = useCallback((newAccessToken: string, newRefreshToken: string) => {
-    setAccessToken(newAccessToken);
-    setRefreshToken(newRefreshToken);
-    localStorage.setItem("accessToken", newAccessToken);
-    localStorage.setItem("refreshToken", newRefreshToken);
+  // Sync React state when the axios interceptor updates localStorage
+  useEffect(() => {
+    const syncFromStorage = () => {
+      const storedAccess = localStorage.getItem("accessToken");
+      const storedRefresh = localStorage.getItem("refreshToken");
+      setAccessToken(storedAccess);
+      setRefreshToken(storedRefresh);
+    };
+
+    window.addEventListener("storage", syncFromStorage);
+
+    // Also listen for custom event dispatched from same tab
+    window.addEventListener("tokens-updated", syncFromStorage);
+
+    return () => {
+      window.removeEventListener("storage", syncFromStorage);
+      window.removeEventListener("tokens-updated", syncFromStorage);
+    };
   }, []);
+
+  const login = useCallback(
+    (newAccessToken: string, newRefreshToken: string) => {
+      setAccessToken(newAccessToken);
+      setRefreshToken(newRefreshToken);
+      localStorage.setItem("accessToken", newAccessToken);
+      localStorage.setItem("refreshToken", newRefreshToken);
+    },
+    [],
+  );
 
   const logout = useCallback(() => {
     setAccessToken(null);
@@ -73,9 +102,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [login, logout]);
 
   return (
-    <AuthContext.Provider value={{ accessToken, refreshToken, login, logout, isAuthenticated: !!accessToken, validateAndRefreshToken }}>
+    <AuthContext.Provider
+      value={{
+        accessToken,
+        refreshToken,
+        login,
+        logout,
+        isAuthenticated: !!accessToken,
+        validateAndRefreshToken,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
-

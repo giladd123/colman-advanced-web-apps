@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import {
   Container,
   Box,
@@ -20,8 +19,9 @@ import {
   Divider,
 } from "@mui/material";
 import type { User } from "../types/user";
+import type { Post } from "../types/post";
 import { useAuth } from "../context/useAuth";
-import API_BASE_URL from "../config/api";
+import { apiClient } from "../services/api";
 
 type CommentItem = {
   _id: string;
@@ -33,7 +33,7 @@ type CommentItem = {
 
 const CommentsPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
-  const [post, setPost] = useState<null | import("../types/post").Post>(null);
+  const [post, setPost] = useState<null | Post>(null);
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,9 +49,9 @@ const CommentsPage: React.FC = () => {
       setError(null);
       try {
         const [postsResp, commentsResp, usersResp] = await Promise.all([
-          axios.get<import("../types/post").Post[]>(`${API_BASE_URL}/posts`),
-          axios.get<CommentItem[]>(`${API_BASE_URL}/comments/postID/${postId}`),
-          axios.get<User[]>(`${API_BASE_URL}/users`),
+          apiClient.get<Post[]>(`/posts`),
+          apiClient.get<CommentItem[]>(`/comments/postID/${postId}`),
+          apiClient.get<User[]>(`/users`),
         ]);
         const found = postsResp.data.find((p) => p._id === postId);
         if (found) setPost(found);
@@ -72,8 +72,8 @@ const CommentsPage: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      const resp = await axios.post<CommentItem>(
-        `${API_BASE_URL}/comments`,
+      const resp = await apiClient.post<CommentItem>(
+        `/comments`,
         { postID: postId, content: newComment.trim() },
         {
           headers: accessToken
