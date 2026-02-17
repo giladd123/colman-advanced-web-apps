@@ -8,6 +8,7 @@ import { userRouter } from "./routers/userRouter";
 import { ensureEnv } from "./utils/ensureEnv";
 import swaggerUi from "swagger-ui-express";
 import swaggerFile from "../swagger-output.json";
+import cors from "cors";
 
 const initApp = (): Promise<Express> => {
   return new Promise((resolve, reject) => {
@@ -25,6 +26,12 @@ const initApp = (): Promise<Express> => {
         console.log("Connected to DB");
 
         const app = express();
+        app.use(
+          cors({
+           origin: process.env.CLIENT_ORIGIN,
+           credentials: true
+          })
+        );
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
 

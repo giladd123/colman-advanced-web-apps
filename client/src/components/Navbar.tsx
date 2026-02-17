@@ -1,0 +1,146 @@
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { AppBar, Toolbar, Avatar, Typography, Box, IconButton } from "@mui/material";
+import { useAuth } from "../context/useAuth";
+import { getUserIdFromToken } from "../utils/usersUtil";
+import axios from "axios";
+import type { User } from "../types/user";
+
+const API_BASE = "http://localhost:3000";
+
+const Navbar: React.FC = () => {
+  const { token } = useAuth();
+  const userId = getUserIdFromToken(token);
+  const navigate = useNavigate();
+  const [username, setUsername] = React.useState<string>("User");
+  const [profileImage, setProfileImage] = React.useState<string>("");
+  
+  useEffect(() => {
+  const fetchData = async () => {
+      const user = await axios.get<User>(`${API_BASE}/users/${userId}`).then(res => res.data);
+      const username = user?.username || "User";
+      const profileImage = user?.profileImage || "";
+      setUsername(username);
+      setProfileImage(profileImage);
+    };
+    fetchData();
+  }, [userId]);
+
+  const handleLogoClick = () => {
+    navigate("/home");
+  };
+
+  const handleProfileClick = () => {
+    navigate("/profile");
+  };
+
+  return (
+    <AppBar position="static" sx={{ boxShadow: 1, bgcolor: "#8134af" }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {/* Brand: Vibely + Logo */}
+        <Box
+          onClick={handleLogoClick}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            cursor: "pointer",
+            transition: "opacity 0.3s ease",
+            "&:hover": {
+              opacity: 0.8,
+            },
+          }}
+        >
+          <Box
+            sx={{
+              width: 38,
+              height: 38,
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #f58529 0%, #dd2a7b 50%, #8134af 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mr: 1,
+              boxShadow: 1,
+            }}
+          >
+            <Box
+              sx={{
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                background: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 700,
+                color: "#dd2a7b",
+                fontSize: 18,
+                letterSpacing: 0.5,
+              }}
+            >
+              V
+            </Box>
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 700,
+              letterSpacing: 1.2,
+              fontFamily: 'Montserrat, Arial, sans-serif',
+              color: "#fff",
+              fontSize: { xs: 18, sm: 22 },
+            }}
+          >
+            Vibely
+          </Typography>
+        </Box>
+
+        {/* User Profile */}
+        <IconButton
+          onClick={handleProfileClick}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            transition: "opacity 0.3s ease",
+            "&:hover": {
+              opacity: 0.8,
+            },
+            p: 0.5,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 500,
+              maxWidth: 150,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              color: "inherit",
+            }}
+          >
+            {username}
+          </Typography>
+          {profileImage ? (
+            <Avatar
+              alt={username}
+              src={profileImage}
+              sx={{ width: 40, height: 40 }}
+            />
+          ) : (
+            <Avatar
+              alt={username}
+              sx={{ width: 40, height: 40, bgcolor: "rgba(255,255,255,0.25)" }}
+            >
+              {username?.charAt(0).toUpperCase() || "U"}
+            </Avatar>
+          )}
+        </IconButton>
+      </Toolbar>
+    </AppBar>
+  );
+};
+
+export default Navbar;

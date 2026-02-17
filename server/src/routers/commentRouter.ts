@@ -5,6 +5,7 @@ import {
   editComment,
   deleteComment,
 } from "../controllers/commentController";
+import { updateCommentsCount } from "../controllers/commentController";
 import {
   createCommentValidator,
   getCommentsValidator,
@@ -26,6 +27,7 @@ commentRouter.post("/",
 
   try {
     const comment = await createComment({ postID, userID, content, createdAt: new Date(), updatedAt: new Date() });
+    await updateCommentsCount(postID);
     return res.status(201).json(comment);
   } catch (error) {
     return res.status(500).json({ error: "Failed to creaate a comment" });
@@ -87,7 +89,13 @@ commentRouter.delete(
     const id = req.params.id as string;
 
     try {
+      // Find the comment to get its postID
+      const comment = await (await import("../models/comment")).commentModel.findById(id);
+      const postID = comment?.postID;
       await deleteComment(id);
+      if (postID) {
+        await updateCommentsCount(postID.toString());
+      }
       return res
         .status(200)
         .json({ message: `The comment ${id} deleted successfully` });

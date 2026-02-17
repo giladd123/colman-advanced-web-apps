@@ -1,4 +1,5 @@
 import { Comment, commentModel } from "../models/comment";
+import { postModel } from "../models/post";
 
 export const createComment = async (comment: Comment) => commentModel.create(comment);
 
@@ -10,3 +11,9 @@ export const editComment = async (comment: Partial<Omit<Comment, 'postID'>>, id:
     await commentModel.findByIdAndUpdate(id, comment, { new: true });
 
 export const deleteComment = async (commentId: string) => await commentModel.deleteOne({ _id: commentId });
+
+// Recalculate and update the commentsCount for a post
+export async function updateCommentsCount(postID: string) {
+  const count = await commentModel.countDocuments({ postID });
+  await postModel.findByIdAndUpdate(postID, { commentsCount: count });
+}
