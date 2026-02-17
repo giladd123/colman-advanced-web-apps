@@ -66,6 +66,7 @@ apiClient.interceptors.response.use(
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         window.dispatchEvent(new Event("tokens-updated"));
+        window.location.href = "/auth";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
