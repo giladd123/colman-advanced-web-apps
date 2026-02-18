@@ -133,6 +133,40 @@ const Auth: React.FC = () => {
         }}
       >
         <Paper elevation={3} sx={{ padding: 2.5, width: "100%" }}>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 2 }}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 2,
+                background:
+                  "linear-gradient(135deg, #0ea5e9 0%, #2563eb 50%, #4f46e5 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 700,
+                color: "#fff",
+                fontSize: 20,
+                fontFamily: "'Fira Code', 'Courier New', monospace",
+                mb: 1,
+              }}
+            >
+              {"</>"}
+            </Box>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                fontFamily: "'Fira Code', 'Courier New', monospace",
+                letterSpacing: 1,
+              }}
+            >
+              Codely
+            </Typography>
+            <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
+              A community for developers
+            </Typography>
+          </Box>
           <Typography
             variant="h5"
             component="h1"
