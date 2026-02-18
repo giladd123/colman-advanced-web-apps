@@ -13,14 +13,16 @@ import {
   deletePostValidator,
 } from "../middleware/postValidator";
 import { authenticate } from "../middleware/authValidator";
+import { upload } from "../middleware/upload";
 
 export const postRouter = Router();
 
-postRouter.post("/", authenticate, addPostValidator, async (req: Request, res) => {
-  const { title, content } = req.body;
-  const userID = (req as any).user!.userID
+postRouter.post("/", authenticate, upload.single("image"), addPostValidator, async (req: Request, res) => {
+  const { content } = req.body;
+  const userID = (req as any).user!.userID;
+  const image = `/uploads/${(req as any).file.filename}`;
   try {
-    const newPost = await addPost(title, userID, content);
+    const newPost = await addPost(userID, content, image);
     return res.status(201).json(newPost);
   } catch (error) {
     return res.status(500).json({ error: "Failed to add post" });
@@ -44,10 +46,10 @@ postRouter.get("/", async (req: Request, res) => {
 
 postRouter.put("/:postId",authenticate, putPostValidator, async (req: Request, res) => {
   const postId = req.params.postId as string; // we know that postId is a string from the validator
-  const { title, content } = req.body;
+  const { content } = req.body;
 
   try {
-    const updatedPost = await updatePost(postId, title, content);
+    const updatedPost = await updatePost(postId, content);
     if (!updatedPost) {
       return res.status(404).json({ error: "Post not found" });
     }

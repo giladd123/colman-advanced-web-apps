@@ -101,6 +101,7 @@ const Profile: React.FC = () => {
       setEditing(false);
       setSelectedFile(null);
       setImagePreview(null);
+      window.dispatchEvent(new Event("profile-updated"));
     } catch {
       setUserError("Failed to update profile");
     } finally {

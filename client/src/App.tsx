@@ -4,6 +4,7 @@ import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Comments from "./pages/Comments";
+import NewPost from "./pages/NewPost";
 import Navbar from "./components/Navbar";
 import "./App.css";
 import { useAuth } from "./context/useAuth";
@@ -68,6 +69,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/new-post"
+          element={
+            <ProtectedRoute>
+              <NewPost />
             </ProtectedRoute>
           }
         />
