@@ -3,7 +3,7 @@ import { postModel } from "../models/post";
 
 export const createComment = async (comment: Comment) => commentModel.create(comment);
 
-export const getCommentsByPostID = async (postID: string) => await commentModel.find({ postID });
+export const getCommentsByPostID = async (postID: string) => await commentModel.find({ postID }).sort({ createdAt: -1 });
 
 export const getCommentById = async (_id: string) => await commentModel.findOne({ _id });
 
