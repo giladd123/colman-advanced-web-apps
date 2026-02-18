@@ -6,7 +6,7 @@
     "version": "1.0.0"
   },
   "host": "localhost:3000",
-  "basePath": "/",
+  "basePath": "/api",
   "tags": [
     {
       "name": "Comments",
@@ -37,16 +37,14 @@
     }
   },
   "paths": {
-    "/posts": {
+    "/": {
       "post": {
-        "tags": ["Posts"],
         "description": "",
         "parameters": [
           {
             "name": "authorization",
             "in": "header",
-            "type": "string",
-            "required": true
+            "type": "string"
           },
           {
             "name": "body",
@@ -54,11 +52,11 @@
             "schema": {
               "type": "object",
               "properties": {
-                "title": {
-                  "example": "string"
+                "postID": {
+                  "example": "any"
                 },
                 "content": {
-                  "example": "string"
+                  "example": "any"
                 }
               }
             }
@@ -80,23 +78,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       },
       "get": {
-        "tags": ["Posts"],
         "description": "",
-        "parameters": [
-          {
-            "name": "userID",
-            "in": "query",
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -107,9 +92,8 @@
         }
       }
     },
-    "/posts/{postId}": {
+    "/{postId}": {
       "put": {
-        "tags": ["Posts"],
         "description": "",
         "parameters": [
           {
@@ -121,8 +105,7 @@
           {
             "name": "authorization",
             "in": "header",
-            "type": "string",
-            "required": true
+            "type": "string"
           },
           {
             "name": "body",
@@ -130,11 +113,8 @@
             "schema": {
               "type": "object",
               "properties": {
-                "title": {
-                  "example": "string"
-                },
                 "content": {
-                  "example": "string"
+                  "example": "any"
                 }
               }
             }
@@ -159,50 +139,35 @@
           "500": {
             "description": "Internal Server Error"
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/comments": {
-      "post": {
-        "tags": ["Comments"],
+        }
+      },
+      "delete": {
         "description": "",
         "parameters": [
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string",
-            "required": true
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "type": "string"
           },
           {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "postID": {
-                  "example": "string"
-                },
-                "content": {
-                  "example": "string"
-                }
-              }
-            }
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
           }
         ],
         "responses": {
-          "201": {
-            "description": "Created"
+          "200": {
+            "description": "OK"
           },
           "400": {
             "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
@@ -213,9 +178,37 @@
         }
       }
     },
-    "/comments/postID/{postID}": {
+    "/{postId}/like": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/postID/{postID}": {
       "get": {
-        "tags": ["Comments"],
         "description": "",
         "parameters": [
           {
@@ -241,9 +234,8 @@
         }
       }
     },
-    "/comments/commentID/{id}": {
+    "/commentID/{id}": {
       "get": {
-        "tags": ["Comments"],
         "description": "",
         "parameters": [
           {
@@ -266,9 +258,8 @@
         }
       }
     },
-    "/comments/{id}": {
+    "/{id}": {
       "put": {
-        "tags": ["Comments"],
         "description": "",
         "parameters": [
           {
@@ -280,139 +271,7 @@
           {
             "name": "authorization",
             "in": "header",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "content": {
-                  "example": "string"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      },
-      "delete": {
-        "tags": ["Comments"],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
             "type": "string"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/users": {
-      "get": {
-        "tags": ["Users"],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/users/{id}": {
-      "get": {
-        "description": "",
-        "tags": ["Users"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      },
-      "put": {
-        "tags": ["Users"],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string",
-            "required": true
           },
           {
             "name": "body",
@@ -421,13 +280,13 @@
               "type": "object",
               "properties": {
                 "email": {
-                  "example": "string"
+                  "example": "any"
                 },
                 "username": {
-                  "example": "string"
+                  "example": "any"
                 },
                 "password": {
-                  "example": "string"
+                  "example": "any"
                 }
               }
             }
@@ -446,21 +305,12 @@
           "403": {
             "description": "Forbidden"
           },
-          "409": {
-            "description": "Conflict"
-          },
           "500": {
             "description": "Internal Server Error"
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       },
       "delete": {
-        "tags": ["Users"],
         "description": "",
         "parameters": [
           {
@@ -472,8 +322,7 @@
           {
             "name": "authorization",
             "in": "header",
-            "type": "string",
-            "required": true
+            "type": "string"
           }
         ],
         "responses": {
@@ -492,17 +341,33 @@
           "500": {
             "description": "Internal Server Error"
           }
-        },
-        "security": [
+        }
+      },
+      "get": {
+        "description": "",
+        "parameters": [
           {
-            "bearerAuth": []
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
-        ]
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
-    "/auth/register": {
+    "/register": {
       "post": {
-        "tags": ["Auth"],
         "description": "",
         "parameters": [
           {
@@ -512,13 +377,13 @@
               "type": "object",
               "properties": {
                 "username": {
-                  "example": "string"
+                  "example": "any"
                 },
                 "email": {
-                  "example": "string"
+                  "example": "any"
                 },
                 "password": {
-                  "example": "string"
+                  "example": "any"
                 }
               }
             }
@@ -537,9 +402,8 @@
         }
       }
     },
-    "/auth/login": {
+    "/login": {
       "post": {
-        "tags": ["Auth"],
         "description": "",
         "parameters": [
           {
@@ -549,10 +413,10 @@
               "type": "object",
               "properties": {
                 "email": {
-                  "example": "string"
+                  "example": "any"
                 },
                 "password": {
-                  "example": "string"
+                  "example": "any"
                 }
               }
             }
@@ -574,9 +438,38 @@
         }
       }
     },
-    "/auth/refresh": {
+    "/google": {
       "post": {
-        "tags": ["Auth"],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "credential": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/refresh": {
+      "post": {
         "description": "",
         "parameters": [
           {
@@ -586,7 +479,7 @@
               "type": "object",
               "properties": {
                 "refreshToken": {
-                  "example": "string"
+                  "example": "any"
                 }
               }
             }
@@ -608,9 +501,8 @@
         }
       }
     },
-    "/auth/logout": {
+    "/logout": {
       "post": {
-        "tags": ["Auth"],
         "description": "",
         "parameters": [
           {
@@ -620,7 +512,7 @@
               "type": "object",
               "properties": {
                 "refreshToken": {
-                  "example": "string"
+                  "example": "any"
                 }
               }
             }
@@ -635,6 +527,26 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/validate": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }

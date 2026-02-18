@@ -8,6 +8,7 @@ import {
   Box,
   IconButton,
 } from "@mui/material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useAuth } from "../context/useAuth";
 import { getUserIdFromToken } from "../utils/usersUtil";
 import type { User } from "../types/user";
@@ -31,6 +32,10 @@ const Navbar: React.FC = () => {
       setProfileImage(profileImage);
     };
     fetchData();
+
+    const handleProfileUpdated = () => fetchData();
+    window.addEventListener("profile-updated", handleProfileUpdated);
+    return () => window.removeEventListener("profile-updated", handleProfileUpdated);
   }, [userId]);
 
   const handleLogoClick = () => {
@@ -39,6 +44,10 @@ const Navbar: React.FC = () => {
 
   const handleProfileClick = () => {
     navigate("/profile");
+  };
+
+  const handleNewPostClick = () => {
+    navigate("/new-post");
   };
 
   return (
@@ -109,6 +118,17 @@ const Navbar: React.FC = () => {
             Vibely
           </Typography>
         </Box>
+
+        <IconButton
+          onClick={handleNewPostClick}
+          sx={{
+            color: "#fff",
+            transition: "opacity 0.3s ease",
+            "&:hover": { opacity: 0.8 },
+          }}
+        >
+          <AddCircleOutlineIcon />
+        </IconButton>
 
         {/* User Profile */}
         <IconButton
