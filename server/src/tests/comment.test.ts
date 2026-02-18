@@ -1,6 +1,8 @@
 import request from "supertest";
 import mongoose from "mongoose";
 import { Express } from "express";
+import path from "path";
+import fs from "fs";
 import initApp from "../app";
 import { User } from "../models/user";
 import { postModel } from "../models/post";
@@ -10,6 +12,8 @@ let app: Express;
 let accessToken: string;
 let userId: string;
 let postId: string;
+
+const testImagePath = path.join(__dirname, "test-image-comment.png");
 
 const testUser = {
   username: "commentuser",
@@ -32,6 +36,13 @@ beforeAll(async () => {
   await postModel.deleteMany({});
   await commentModel.deleteMany({});
 
+  // Create a minimal test image (1x1 PNG)
+  const pngBuffer = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  fs.writeFileSync(testImagePath, pngBuffer);
+
   // Register user
   const registerResponse = await request(app)
     .post("/api/auth/register")
@@ -44,13 +55,13 @@ beforeAll(async () => {
   userId = user!._id.toString();
 
   // Create a post to comment on
-  await request(app)
+  const postResponse = await request(app)
     .post("/api/posts")
     .set("Authorization", `Bearer ${accessToken}`)
-    .send({ title: "Test Post for Comments", content: "Post content" });
+    .attach("image", testImagePath)
+    .field("content", "Post content for comments");
 
-  const posts = await postModel.find({ userID: userId });
-  postId = posts[0]._id.toString();
+  postId = postResponse.body._id;
 
   // Register second user for authorization tests
   const secondRegisterResponse = await request(app)
@@ -61,6 +72,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  if (fs.existsSync(testImagePath)) {
+    fs.unlinkSync(testImagePath);
+  }
   await mongoose.connection.close();
 });
 
@@ -185,13 +199,13 @@ describe("Comment Endpoints", () => {
 
     it("should return empty array for post with no comments", async () => {
       // Create a new post without comments
-      await request(app)
+      const newPostResponse = await request(app)
         .post("/api/posts")
         .set("Authorization", `Bearer ${accessToken}`)
-        .send({ title: "Post without comments", content: "No comments here" });
+        .attach("image", testImagePath)
+        .field("content", "No comments here");
 
-      const posts = await postModel.find({ title: "Post without comments" });
-      const newPostId = posts[0]._id.toString();
+      const newPostId = newPostResponse.body._id;
 
       const response = await request(app).get(`/api/comments/postID/${newPostId}`);
 
