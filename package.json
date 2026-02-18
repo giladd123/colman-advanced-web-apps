@@ -8,7 +8,8 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build": "cd client && npm run build && cd ../server && npm run build",
     "start": "cd server && npm start",
-    "test": "cd server && npm test"
+    "test": "cd server && npm test",
+    "swagger": "cd server && npm run swagger"
   },
   "dependencies": {
     "jwt-decode": "^4.0.0"
