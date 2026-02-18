@@ -15,10 +15,10 @@ if (!GOOGLE_CLIENT_ID) {
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#2563eb',
     },
     secondary: {
-      main: '#dc004e',
+      main: '#0ea5e9',
     },
   },
   typography: {

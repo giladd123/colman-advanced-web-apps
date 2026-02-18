@@ -4,9 +4,9 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "My API",
+      title: "Codely API",
       version: "1.0.0",
-      description: "API documentation",
+      description: "Codely - Code Forum API documentation",
     },
     tags: [
       { name: "Auth", description: "Endpoints for authentication" },
