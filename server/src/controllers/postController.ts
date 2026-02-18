@@ -16,11 +16,11 @@ export async function getAllPosts() {
       await post.save();
     }
   }));
-  return await postModel.find({});
+  return await postModel.find({}).sort({ createdAt: -1 });
 }
 
 export async function getPostsByUser(userID: string) {
-  return await postModel.find({ userID: userID });
+  return await postModel.find({ userID: userID }).sort({ createdAt: -1 });
 }
 export async function updatePost(
   postId: string,
