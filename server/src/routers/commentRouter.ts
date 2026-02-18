@@ -18,8 +18,48 @@ import { authenticate } from "../middleware/authValidator";
 
 export const commentRouter = Router();
 
+/**
+ * @openapi
+ * /api/comments:
+ *   post:
+ *     tags:
+ *       - Comments
+ *     summary: Create a new comment on a post
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - postID
+ *               - content
+ *             properties:
+ *               postID:
+ *                 type: string
+ *                 description: The ID of the post to comment on
+ *                 example: 64a1f2c3b4d5e6f7a8b9c0d1
+ *               content:
+ *                 type: string
+ *                 example: Great post!
+ *     responses:
+ *       201:
+ *         description: Comment created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Comment'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Failed to create comment
+ */
 commentRouter.post("/",
-  authenticate,          
+  authenticate,
   createCommentValidator,
   async (req: Request, res) => {
   const { postID, content } = req.body;
@@ -34,6 +74,34 @@ commentRouter.post("/",
   }
 });
 
+/**
+ * @openapi
+ * /api/comments/postID/{postID}:
+ *   get:
+ *     tags:
+ *       - Comments
+ *     summary: Get all comments for a specific post
+ *     parameters:
+ *       - in: path
+ *         name: postID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the post
+ *     responses:
+ *       200:
+ *         description: List of comments for the post (descending order)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Comment'
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Failed to fetch comments
+ */
 commentRouter.get(
   "/postID/:postID",
   getCommentsValidator,
@@ -52,6 +120,34 @@ commentRouter.get(
   },
 );
 
+/**
+ * @openapi
+ * /api/comments/commentID/{id}:
+ *   get:
+ *     tags:
+ *       - Comments
+ *     summary: Get a specific comment by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the comment
+ *     responses:
+ *       200:
+ *         description: The requested comment
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Comment'
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Comment not found
+ *       500:
+ *         description: Failed to fetch comment
+ */
 commentRouter.get(
   "/commentID/:id",
   getCommentByIdValidator,
@@ -68,6 +164,50 @@ commentRouter.get(
   },
 );
 
+/**
+ * @openapi
+ * /api/comments/{id}:
+ *   put:
+ *     tags:
+ *       - Comments
+ *     summary: Edit a comment
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the comment to edit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 example: Updated comment text
+ *     responses:
+ *       200:
+ *         description: Comment updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Comment'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Comment not found
+ *       500:
+ *         description: Failed to update comment
+ */
 commentRouter.put("/:id", authenticate, editCommentValidator, async (req: Request, res) => {
   const id = req.params.id as string;
   const { content } = req.body;
@@ -81,6 +221,41 @@ commentRouter.put("/:id", authenticate, editCommentValidator, async (req: Reques
   }
 });
 
+/**
+ * @openapi
+ * /api/comments/{id}:
+ *   delete:
+ *     tags:
+ *       - Comments
+ *     summary: Delete a comment
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the comment to delete
+ *     responses:
+ *       200:
+ *         description: Comment deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Comment not found
+ *       500:
+ *         description: Failed to delete comment
+ */
 commentRouter.delete(
   "/:id",
   authenticate,

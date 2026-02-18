@@ -15,6 +15,26 @@ import { upload } from "../middleware/upload";
 
 export const userRouter = Router();
 
+/**
+ * @openapi
+ * /api/users:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get all users
+ *     description: Returns all users with sensitive fields (password, refreshTokens) stripped.
+ *     responses:
+ *       200:
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Failed to fetch users
+ */
 userRouter.get("/", async (req: Request, res) => {
   try {
     const users = await getAllUsers();
@@ -30,6 +50,34 @@ userRouter.get("/", async (req: Request, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get a user by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user's ID
+ *     responses:
+ *       200:
+ *         description: The requested user (without sensitive data)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to fetch user
+ */
 userRouter.get("/:id", getUserByIdValidator, async (req: Request, res) => {
   const id = req.params.id as string;
 
@@ -44,6 +92,58 @@ userRouter.get("/:id", getUserByIdValidator, async (req: Request, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: Update a user's profile
+ *     description: >
+ *       Updates the user profile. All fields are optional.
+ *       Send as multipart/form-data to include a profile image.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user's ID
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *                 format: password
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: User updated successfully (without sensitive data)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to update user
+ */
 // Validation is split: ID/auth checks run before upload to avoid saving files
 // for unauthorized requests. Body validation runs after upload because multer
 // must parse multipart/form-data before req.body is available.
@@ -57,8 +157,12 @@ userRouter.put(
     const id = req.params.id as string;
     const { email, username, password } = req.body;
 
-    const updateData: { email?: string; username?: string; password?: string; profileImage?: string } =
-      {};
+    const updateData: {
+      email?: string;
+      username?: string;
+      password?: string;
+      profileImage?: string;
+    } = {};
     if (email) updateData.email = email;
     if (username) updateData.username = username;
     if (password) updateData.password = password;
@@ -82,6 +186,41 @@ userRouter.put(
   },
 );
 
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   delete:
+ *     tags:
+ *       - Users
+ *     summary: Delete a user account
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user's ID
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to delete user
+ */
 userRouter.delete(
   "/:id",
   authenticate,
