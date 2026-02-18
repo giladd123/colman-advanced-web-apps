@@ -1,93 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Container, Box, CircularProgress, Alert } from "@mui/material";
 import PostList from "../components/PostList";
-import type { Post } from "../types/post";
-import type { User } from "../types/user";
-import { useAuth } from "../context/useAuth";
-import { getUserIdFromToken } from "../utils/usersUtil";
-import { apiClient } from "../services/api";
+import { usePosts } from "../hooks/usePosts";
 
 const Home: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-  const { accessToken } = useAuth();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [postsResp, usersResp] = await Promise.all([
-          apiClient.get<Post[]>(`/posts`),
-          apiClient.get<User[]>(`/users`),
-        ]);
-        setPosts(postsResp.data.reverse?.() || postsResp.data);
-        setUsers(usersResp.data);
-        const userId = getUserIdFromToken(accessToken);
-        const likedPosts = postsResp.data
-          .filter((p) => p.likes.includes(userId || ""))
-          .map((p) => p._id);
-        setLikedPosts(new Set(likedPosts));
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const handleLike = async (postId: string) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p._id === postId
-          ? {
-              ...p,
-              likesCount: p.likesCount + (likedPosts.has(postId) ? -1 : 1),
-            }
-          : p,
-      ),
-    );
-
-    setLikedPosts((prev) => {
-      const next = new Set(prev);
-      if (next.has(postId)) next.delete(postId);
-      else next.add(postId);
-      return next;
-    });
-
-    try {
-      await apiClient.post(
-        `/posts/${postId}/like`,
-        {},
-        {
-          headers: accessToken
-            ? { Authorization: `Bearer ${accessToken}` }
-            : undefined,
-        },
-      );
-    } catch (error) {
-      // revert on failure
-      console.error(error);
-      setPosts((prev) =>
-        prev.map((p) =>
-          p._id === postId
-            ? {
-                ...p,
-                likesCount: p.likesCount + (likedPosts.has(postId) ? 1 : -1),
-              }
-            : p,
-        ),
-      );
-      setLikedPosts((prev) => {
-        const next = new Set(prev);
-        if (next.has(postId)) next.delete(postId);
-        else next.add(postId);
-        return next;
-      });
-    }
-  };
+  const { posts, users, likedPosts, loading, error, handleLike } = usePosts();
 
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
