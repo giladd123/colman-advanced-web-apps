@@ -17,10 +17,21 @@ import {
   CardMedia,
   CardContent,
   Divider,
+  IconButton,
+  Tooltip,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import type { User } from "../types/user";
 import type { Post } from "../types/post";
 import { useAuth } from "../context/useAuth";
+import { getUserIdFromToken } from "../utils/usersUtil";
 import { apiClient } from "../services/api";
 
 type CommentItem = {
@@ -40,7 +51,12 @@ const CommentsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, accessToken } = useAuth();
+  const currentUserId = getUserIdFromToken(accessToken);
+
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState("");
+  const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -94,6 +110,29 @@ const CommentsPage: React.FC = () => {
       setError("Failed to add comment");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEditComment = async (commentId: string, content: string) => {
+    try {
+      await apiClient.put(`/comments/${commentId}`, { content });
+      setComments((prev) =>
+        prev.map((c) => (c._id === commentId ? { ...c, content } : c))
+      );
+      setEditingCommentId(null);
+      setEditingContent("");
+    } catch {
+      setError("Failed to edit comment");
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await apiClient.delete(`/comments/${commentId}`);
+      setComments((prev) => prev.filter((c) => c._id !== commentId));
+      setDeleteCommentId(null);
+    } catch {
+      setError("Failed to delete comment");
     }
   };
 
@@ -153,6 +192,7 @@ const CommentsPage: React.FC = () => {
             <List>
               {comments.map((c, idx) => {
                 const user = users.find((u) => u._id === c.userID);
+                const isCommentOwner = currentUserId != null && c.userID != null && currentUserId === c.userID.toString();
                 return (
                   <React.Fragment key={c._id}>
                     <ListItem alignItems="flex-start">
@@ -161,35 +201,94 @@ const CommentsPage: React.FC = () => {
                           {user?.username?.charAt(0).toUpperCase() || "U"}
                         </Avatar>
                       </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <>
-                            <Typography
-                              component="span"
-                              variant="subtitle2"
-                              sx={{ fontWeight: 600, mr: 1 }}
+
+                      {editingCommentId === c._id ? (
+                        <Box sx={{ flex: 1 }}>
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={1}
+                            value={editingContent}
+                            onChange={(e) => setEditingContent(e.target.value)}
+                            size="small"
+                            autoFocus
+                          />
+                          <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => handleEditComment(c._id, editingContent)}
+                              disabled={!editingContent.trim()}
                             >
-                              {user?.username || c.userID || "User"}
-                            </Typography>
-                            <Typography
-                              component="span"
-                              variant="body2"
-                              color="textPrimary"
+                              Save
+                            </Button>
+                            <Button
+                              size="small"
+                              onClick={() => {
+                                setEditingCommentId(null);
+                                setEditingContent("");
+                              }}
                             >
-                              {c.content}
-                            </Typography>
-                          </>
-                        }
-                        secondary={
-                          <Typography
-                            component="div"
-                            variant="caption"
-                            color="textSecondary"
-                          >
-                            {new Date(c.createdAt).toLocaleString()}
-                          </Typography>
-                        }
-                      />
+                              Cancel
+                            </Button>
+                          </Box>
+                        </Box>
+                      ) : (
+                        <>
+                          <ListItemText
+                            primary={
+                              <>
+                                <Typography
+                                  component="span"
+                                  variant="subtitle2"
+                                  sx={{ fontWeight: 600, mr: 1 }}
+                                >
+                                  {user?.username || c.userID || "User"}
+                                </Typography>
+                                <Typography
+                                  component="span"
+                                  variant="body2"
+                                  color="textPrimary"
+                                >
+                                  {c.content}
+                                </Typography>
+                              </>
+                            }
+                            secondary={
+                              <Typography
+                                component="div"
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                {new Date(c.createdAt).toLocaleString()}
+                              </Typography>
+                            }
+                          />
+                          {isCommentOwner && (
+                            <Box sx={{ display: "flex", alignItems: "flex-start", ml: 1 }}>
+                              <Tooltip title="Edit comment">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => {
+                                    setEditingCommentId(c._id);
+                                    setEditingContent(c.content);
+                                  }}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete comment">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => setDeleteCommentId(c._id)}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          )}
+                        </>
+                      )}
                     </ListItem>
                     {idx < comments.length - 1 && (
                       <Divider variant="fullWidth" component="li" />
@@ -279,6 +378,28 @@ const CommentsPage: React.FC = () => {
             )}
           </Box>
         )}
+
+        {/* Delete Comment Confirmation Dialog */}
+        <Dialog open={deleteCommentId !== null} onClose={() => setDeleteCommentId(null)}>
+          <DialogTitle>Delete Comment</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteCommentId(null)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                if (deleteCommentId) handleDeleteComment(deleteCommentId);
+              }}
+              color="error"
+              variant="contained"
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );

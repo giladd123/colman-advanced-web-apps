@@ -34,7 +34,6 @@ export const postRouter = Router();
  *             type: object
  *             required:
  *               - content
- *               - image
  *             properties:
  *               content:
  *                 type: string
@@ -64,7 +63,7 @@ postRouter.post(
   async (req: Request, res) => {
     const { content } = req.body;
     const userID = (req as any).user!.userID;
-    const image = `/uploads/${(req as any).file.filename}`;
+    const image = (req as any).file ? `/uploads/${(req as any).file.filename}` : undefined;
     try {
       const newPost = await addPost(userID, content, image);
       return res.status(201).json(newPost);
@@ -121,7 +120,7 @@ postRouter.get("/", async (req: Request, res) => {
  *   put:
  *     tags:
  *       - Posts
- *     summary: Update a post's content
+ *     summary: Update a post's content and/or image
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -134,15 +133,16 @@ postRouter.get("/", async (req: Request, res) => {
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - content
  *             properties:
  *               content:
  *                 type: string
  *                 example: Updated post content
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Post updated successfully
@@ -162,13 +162,15 @@ postRouter.get("/", async (req: Request, res) => {
 postRouter.put(
   "/:postId",
   authenticate,
+  upload.single("image"),
   putPostValidator,
   async (req: Request, res) => {
     const postId = req.params.postId as string; // we know that postId is a string from the validator
     const { content } = req.body;
+    const image = (req as any).file ? `/uploads/${(req as any).file.filename}` : undefined;
 
     try {
-      const updatedPost = await updatePost(postId, content);
+      const updatedPost = await updatePost(postId, content, image);
       if (!updatedPost) {
         return res.status(404).json({ error: "Post not found" });
       }

@@ -4,7 +4,7 @@ import PostList from "../components/PostList";
 import { usePosts } from "../hooks/usePosts";
 
 const Home: React.FC = () => {
-  const { posts, users, likedPosts, loading, error, handleLike } = usePosts();
+  const { posts, users, likedPosts, loading, error, handleLike, handleEditPost, handleDeletePost, userId } = usePosts();
 
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -33,6 +33,9 @@ const Home: React.FC = () => {
             posts={posts}
             likedPosts={likedPosts}
             onLike={handleLike}
+            onEdit={handleEditPost}
+            onDelete={handleDeletePost}
+            currentUserId={userId}
           />
         )}
       </Container>

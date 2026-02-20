@@ -48,5 +48,30 @@ export function usePosts(userID?: string) {
     }
   };
 
-  return { posts, users, likedPosts, loading, error, handleLike, setUsers };
+  const handleEditPost = async (postId: string, content: string, image?: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("content", content);
+      if (image) {
+        formData.append("image", image);
+      }
+      await apiClient.put(`/posts/${postId}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      await fetchData();
+    } catch {
+      setError("Failed to edit post");
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      await apiClient.delete(`/posts/${postId}`);
+      await fetchData();
+    } catch {
+      setError("Failed to delete post");
+    }
+  };
+
+  return { posts, users, likedPosts, loading, error, handleLike, handleEditPost, handleDeletePost, userId, setUsers };
 }
