@@ -17,6 +17,8 @@ export interface PostCardProps {
   isLiked: boolean;
   onLike: (postId: string) => void;
   user: User | undefined;
+  currentUserId?: string | null;
+  onEdit?: (postId: string, newContent: string, newImage?: File) => void;  onDelete?: (postId: string) => void;
 }
 
 export interface PostListProps {
@@ -24,4 +26,6 @@ export interface PostListProps {
   users: User[];
   likedPosts: Set<string>;
   onLike: (postId: string) => void;
+  currentUserId?: string | null;
+  onEdit?: (postId: string, newContent: string, newImage?: File) => void;  onDelete?: (postId: string) => void;
 }
