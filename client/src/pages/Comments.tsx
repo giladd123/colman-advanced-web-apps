@@ -28,6 +28,8 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import type { User } from "../types/user";
 import type { Post } from "../types/post";
 import { useAuth } from "../context/useAuth";
@@ -70,6 +72,25 @@ const CommentsPage: React.FC = () => {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+
+  const isLiked = !!(post && currentUserId && post.likes.includes(currentUserId));
+
+  const handleLike = async () => {
+    if (!postId || !isAuthenticated) return;
+    try {
+      const resp = await apiClient.post<{ liked: boolean; likesCount: number; likes: string[] }>(
+        `/posts/${postId}/like`,
+        {}
+      );
+      setPost((prev) =>
+        prev
+          ? { ...prev, likes: resp.data.likes, likesCount: resp.data.likesCount }
+          : prev
+      );
+    } catch {
+      setError("Failed to like post");
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -218,6 +239,36 @@ const CommentsPage: React.FC = () => {
                 )}
                 <CardContent>
                   <Typography variant="body2">{post.content}</Typography>
+                  <Box
+                    sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Tooltip title={isLiked ? "Unlike" : "Like"}>
+                      <IconButton
+                        size="small"
+                        onClick={handleLike}
+                        disabled={!isAuthenticated}
+                        sx={{
+                          color: isLiked ? "#e53935" : "text.secondary",
+                          transition: "color 0.2s",
+                          p: 0.5,
+                        }}
+                      >
+                        {isLiked ? (
+                          <FavoriteIcon sx={{ fontSize: 18 }} />
+                        ) : (
+                          <FavoriteBorderIcon sx={{ fontSize: 18 }} />
+                        )}
+                      </IconButton>
+                    </Tooltip>
+                    <Typography
+                      variant="caption"
+                      fontWeight={600}
+                      color={isLiked ? "#e53935" : "text.secondary"}
+                    >
+                      {post.likesCount}
+                    </Typography>
+                  </Box>
                 </CardContent>
               </Card>
             )}

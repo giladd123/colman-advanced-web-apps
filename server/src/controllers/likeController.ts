@@ -25,7 +25,7 @@ export async function toggleLike(postID: string, userID: string) {
     post.likes.push(userObjectId);
     liked = true;
   }
-
+  
   post.likesCount = post.likes.length;
 
   await post.save();

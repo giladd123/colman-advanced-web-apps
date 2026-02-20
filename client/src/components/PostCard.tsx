@@ -42,7 +42,8 @@ const PostCard: React.FC<PostCardProps> = ({
 
   const isOwner = currentUserId != null && currentUserId === post.userID;
 
-  const handleLikeClick = () => {
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     onLike(post._id);
   };
 
@@ -59,7 +60,8 @@ const PostCard: React.FC<PostCardProps> = ({
     reader.readAsDataURL(file);
   };
 
-  const handleEditOpen = () => {
+  const handleEditOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setEditContent(post.content);
     setEditImagePreview(null);
     setEditSelectedFile(null);
@@ -103,6 +105,7 @@ const PostCard: React.FC<PostCardProps> = ({
     <>
       <Paper
         variant="outlined"
+        onClick={handleCommentsClick}
         sx={{
           mb: 1,
           display: "flex",
@@ -110,7 +113,7 @@ const PostCard: React.FC<PostCardProps> = ({
           overflow: "hidden",
           "&:hover": { borderColor: "primary.main", bgcolor: "action.hover" },
           transition: "border-color 0.15s, background-color 0.15s",
-          cursor: "default",
+          cursor: "pointer",
         }}
       >
         <Box
@@ -159,7 +162,10 @@ const PostCard: React.FC<PostCardProps> = ({
           <Tooltip title="View comments">
             <IconButton
               size="small"
-              onClick={handleCommentsClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCommentsClick();
+              }}
               sx={{ color: "text.secondary", p: 0.5 }}
             >
               <ChatBubbleOutlineIcon sx={{ fontSize: 16 }} />
@@ -210,7 +216,10 @@ const PostCard: React.FC<PostCardProps> = ({
                 <Tooltip title="Delete post">
                   <IconButton
                     size="small"
-                    onClick={() => setDeleteDialogOpen(true)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteDialogOpen(true);
+                    }}
                     sx={{ p: 0.5, color: "text.secondary" }}
                   >
                     <DeleteIcon sx={{ fontSize: 14 }} />
