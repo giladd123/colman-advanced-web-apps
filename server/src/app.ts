@@ -7,6 +7,7 @@ import { postRouter } from "./routers/postRouter";
 import { authRouter } from "./routers/authRouter";
 import { commentRouter } from "./routers/commentRouter";
 import { userRouter } from "./routers/userRouter";
+import { ragRouter } from "./routers/ragRouter";
 import { ensureEnv } from "./utils/ensureEnv";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "../swagger";
@@ -20,7 +21,7 @@ const initApp = (): Promise<Express> => {
       dotenv.config();
     }
 
-    ensureEnv(["DATABASE_URL", "JWT_SECRET", "JWT_REFRESH_SECRET", "GOOGLE_CLIENT_ID"]);
+    ensureEnv(["DATABASE_URL", "JWT_SECRET", "JWT_REFRESH_SECRET", "GOOGLE_CLIENT_ID", "OPENAI_API_KEY"]);
 
     connectToDatabase()
       .then(() => {
@@ -44,6 +45,7 @@ const initApp = (): Promise<Express> => {
         app.use("/api/posts", postRouter);
         app.use("/api/comments", commentRouter);
         app.use("/api/users", userRouter);
+        app.use("/api/rag", ragRouter);
         app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
         // Serve frontend in production

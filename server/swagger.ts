@@ -13,6 +13,7 @@ const options: swaggerJsdoc.Options = {
       { name: "Posts", description: "Endpoints for posts" },
       { name: "Comments", description: "Endpoints for comments" },
       { name: "Users", description: "Endpoints for users" },
+      { name: "RAG", description: "Endpoints for RAG-based Q&A" },
     ],
     components: {
       securitySchemes: {
@@ -64,6 +65,7 @@ const options: swaggerJsdoc.Options = {
     "./src/routers/postRouter.ts",
     "./src/routers/commentRouter.ts",
     "./src/routers/userRouter.ts",
+    "./src/routers/ragRouter.ts",
   ],
 };
 

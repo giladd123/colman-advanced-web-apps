@@ -40,7 +40,7 @@ const CommentsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { accessToken, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,11 +75,6 @@ const CommentsPage: React.FC = () => {
       const resp = await apiClient.post<CommentItem>(
         `/comments`,
         { postID: postId, content: newComment.trim() },
-        {
-          headers: accessToken
-            ? { Authorization: `Bearer ${accessToken}` }
-            : undefined,
-        },
       );
 
       const respData = resp.data as CommentItem;

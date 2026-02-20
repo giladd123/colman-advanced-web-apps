@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Comments from "./pages/Comments";
 import NewPost from "./pages/NewPost";
+import Ask from "./pages/Ask";
 import Navbar from "./components/Navbar";
 import "./App.css";
 import { useAuth } from "./context/useAuth";
@@ -77,6 +78,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <NewPost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ask"
+          element={
+            <ProtectedRoute>
+              <Ask />
             </ProtectedRoute>
           }
         />

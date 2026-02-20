@@ -1,7 +1,22 @@
 import { Comment, commentModel } from "../models/comment";
 import { postModel } from "../models/post";
+import { embeddingModel } from "../models/embedding";
+import { getEmbeddingWithContext } from "../services/llmService";
 
-export const createComment = async (comment: Comment) => commentModel.create(comment);
+export const createComment = async (comment: Comment) => {
+  const created = await commentModel.create(comment);
+
+  // Add embedding (non-blocking)
+  postModel.findById(comment.postID).then((post) =>
+    getEmbeddingWithContext(comment.content, post?.content)
+      .then((embedding) =>
+        embeddingModel.create({ sourceType: "comment", sourceId: created._id, content: comment.content, embedding })
+      )
+      .catch((err) => console.error("Failed to index comment:", err))
+  );
+
+  return created;
+};
 
 export const getCommentsByPostID = async (postID: string) => await commentModel.find({ postID }).sort({ createdAt: -1 });
 

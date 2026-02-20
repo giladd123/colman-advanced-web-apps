@@ -9,6 +9,7 @@ import {
   IconButton,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import { useAuth } from "../context/useAuth";
 import { getUserIdFromToken } from "../utils/usersUtil";
 import type { User } from "../types/user";
@@ -49,6 +50,10 @@ const Navbar: React.FC = () => {
 
   const handleNewPostClick = () => {
     navigate("/new-post");
+  };
+
+  const handleAskClick = () => {
+    navigate("/ask");
   };
 
   return (
@@ -108,16 +113,28 @@ const Navbar: React.FC = () => {
           </Typography>
         </Box>
 
-        <IconButton
-          onClick={handleNewPostClick}
-          sx={{
-            color: "#fff",
-            transition: "opacity 0.3s ease",
-            "&:hover": { opacity: 0.8 },
-          }}
-        >
-          <AddCircleOutlineIcon />
-        </IconButton>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <IconButton
+            onClick={handleNewPostClick}
+            sx={{
+              color: "#fff",
+              transition: "opacity 0.3s ease",
+              "&:hover": { opacity: 0.8 },
+            }}
+          >
+            <AddCircleOutlineIcon />
+          </IconButton>
+          <IconButton
+            onClick={handleAskClick}
+            sx={{
+              color: "#fff",
+              transition: "opacity 0.3s ease",
+              "&:hover": { opacity: 0.8 },
+            }}
+          >
+            <QuestionAnswerIcon />
+          </IconButton>
+        </Box>
 
         {/* User Profile */}
         <Box
