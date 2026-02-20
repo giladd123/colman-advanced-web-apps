@@ -4,6 +4,7 @@ import {
   updatePost,
   getAllPosts,
   getPostsByUser,
+  getPostById,
   deletePost,
 } from "../controllers/postController";
 import { toggleLike } from "../controllers/likeController";
@@ -79,7 +80,7 @@ postRouter.post(
  *   get:
  *     tags:
  *       - Posts
- *     summary: Get all posts, optionally filtered by user
+ *     summary: Get posts with pagination, optionally filtered by user
  *     parameters:
  *       - in: query
  *         name: userID
@@ -87,30 +88,96 @@ postRouter.post(
  *           type: string
  *         required: false
  *         description: Filter posts by user ID
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         required: false
+ *         description: Page number (1-indexed)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         required: false
+ *         description: Number of posts per page
  *     responses:
  *       200:
- *         description: List of posts
+ *         description: Paginated list of posts
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Post'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Post'
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 hasMore:
+ *                   type: boolean
  *       500:
  *         description: Failed to retrieve posts
  */
 postRouter.get("/", async (req: Request, res) => {
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
   try {
-    let posts;
+    let result;
     if (!req.query.userID) {
-      posts = await getAllPosts();
+      result = await getAllPosts(page, limit);
     } else {
       const userID = req.query.userID as string;
-      posts = await getPostsByUser(userID);
+      result = await getPostsByUser(userID, page, limit);
     }
-    return res.status(200).json(posts);
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ error: "Failed to retrieve posts" });
+  }
+});
+
+/**
+ * @openapi
+ * /api/posts/{postId}:
+ *   get:
+ *     tags:
+ *       - Posts
+ *     summary: Get a single post by ID
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the post
+ *     responses:
+ *       200:
+ *         description: The requested post
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Post'
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Failed to retrieve post
+ */
+postRouter.get("/:postId", async (req: Request, res) => {
+  const postId = req.params.postId as string;
+  try {
+    const post = await getPostById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+    return res.status(200).json(post);
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to retrieve post" });
   }
 });
 

@@ -17,9 +17,11 @@ export async function addPost(userID: string, content: string, image?: string) {
   return saved;
 }
 
-export async function getAllPosts() {
-  const posts = await postModel.find({});
-  // For each post, recalculate commentsCount and update if needed
+export async function getAllPosts(page = 1, limit = 10) {
+  const skip = (page - 1) * limit;
+  const total = await postModel.countDocuments({});
+  const posts = await postModel.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit);
+  // For each post on this page, recalculate commentsCount and update if needed
   await Promise.all(posts.map(async (post) => {
     const count = await commentModel.countDocuments({ postID: post._id });
     if (post.commentsCount !== count) {
@@ -27,12 +29,19 @@ export async function getAllPosts() {
       await post.save();
     }
   }));
-  return await postModel.find({}).sort({ createdAt: -1 });
+  return { data: posts, page, limit, total, hasMore: skip + posts.length < total };
 }
 
-export async function getPostsByUser(userID: string) {
-  return await postModel.find({ userID: userID }).sort({ createdAt: -1 });
+export async function getPostsByUser(userID: string, page = 1, limit = 10) {
+  const skip = (page - 1) * limit;
+  const total = await postModel.countDocuments({ userID });
+  const data = await postModel.find({ userID }).sort({ createdAt: -1 }).skip(skip).limit(limit);
+  return { data, page, limit, total, hasMore: skip + data.length < total };
 }
+export async function getPostById(postId: string) {
+  return await postModel.findById(postId);
+}
+
 export async function updatePost(
   postId: string,
   content?: string,
