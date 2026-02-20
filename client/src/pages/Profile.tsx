@@ -90,10 +90,7 @@ const Profile: React.FC = () => {
       }
 
       const resp = await apiClient.put<User>(`/users/${userId}`, formData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       setUser(resp.data);
