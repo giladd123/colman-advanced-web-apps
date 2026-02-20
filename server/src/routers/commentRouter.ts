@@ -80,7 +80,7 @@ commentRouter.post("/",
  *   get:
  *     tags:
  *       - Comments
- *     summary: Get all comments for a specific post
+ *     summary: Get comments for a specific post with pagination
  *     parameters:
  *       - in: path
  *         name: postID
@@ -88,15 +88,40 @@ commentRouter.post("/",
  *         schema:
  *           type: string
  *         description: The ID of the post
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         required: false
+ *         description: Page number (1-indexed)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         required: false
+ *         description: Number of comments per page
  *     responses:
  *       200:
- *         description: List of comments for the post (descending order)
+ *         description: Paginated list of comments for the post (descending order)
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Comment'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Comment'
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 hasMore:
+ *                   type: boolean
  *       400:
  *         description: Validation error
  *       500:
@@ -107,10 +132,12 @@ commentRouter.get(
   getCommentsValidator,
   async (req: Request, res) => {
     const postID = req.params.postID as string;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
 
     try {
-      const comments = await getCommentsByPostID(postID);
-      return res.status(200).json(comments);
+      const result = await getCommentsByPostID(postID, page, limit);
+      return res.status(200).json(result);
     } catch (error) {
       console.error(error);
       return res
