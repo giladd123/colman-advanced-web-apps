@@ -107,7 +107,9 @@ describe("Comment Endpoints", () => {
         content: "Unauthorized comment",
       };
 
-      const response = await request(app).post("/api/comments").send(commentData);
+      const response = await request(app)
+        .post("/api/comments")
+        .send(commentData);
 
       expect(response.status).toBe(401);
       expect(response.body.error).toBe("Unauthorized");
@@ -192,9 +194,9 @@ describe("Comment Endpoints", () => {
       const response = await request(app).get(`/api/comments/postID/${postId}`);
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThanOrEqual(1);
-      expect(response.body[0].postID).toBe(postId);
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.data.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.data[0].postID).toBe(postId);
     });
 
     it("should return empty array for post with no comments", async () => {
@@ -207,23 +209,29 @@ describe("Comment Endpoints", () => {
 
       const newPostId = newPostResponse.body._id;
 
-      const response = await request(app).get(`/api/comments/postID/${newPostId}`);
+      const response = await request(app).get(
+        `/api/comments/postID/${newPostId}`,
+      );
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBe(0);
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.data.length).toBe(0);
     });
 
     it("should return 404 for non-existent post ID", async () => {
       const fakePostId = new mongoose.Types.ObjectId().toString();
-      const response = await request(app).get(`/api/comments/postID/${fakePostId}`);
+      const response = await request(app).get(
+        `/api/comments/postID/${fakePostId}`,
+      );
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe(`Post ${fakePostId} not found`);
     });
 
     it("should fail with invalid post ID format", async () => {
-      const response = await request(app).get("/api/comments/postID/invalid-id");
+      const response = await request(app).get(
+        "/api/comments/postID/invalid-id",
+      );
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe("Invalid postID: invalid-id");
@@ -251,7 +259,9 @@ describe("Comment Endpoints", () => {
     });
 
     it("should fail with invalid comment ID format", async () => {
-      const response = await request(app).get("/api/comments/commentID/invalid-id");
+      const response = await request(app).get(
+        "/api/comments/commentID/invalid-id",
+      );
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe("Invalid comment id: invalid-id");

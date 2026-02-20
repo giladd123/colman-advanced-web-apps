@@ -137,26 +137,28 @@ describe("Post Endpoints", () => {
       const response = await request(app).get("/api/posts");
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThanOrEqual(1);
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.data.length).toBeGreaterThanOrEqual(1);
     });
 
     it("should get posts by user ID", async () => {
       const response = await request(app).get(`/api/posts?userID=${userId}`);
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThanOrEqual(1);
-      expect(response.body[0].userID).toBe(userId);
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.data.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.data[0].userID).toBe(userId);
     });
 
     it("should return empty array for non-existent user ID", async () => {
       const fakeUserId = new mongoose.Types.ObjectId().toString();
-      const response = await request(app).get(`/api/posts?userID=${fakeUserId}`);
+      const response = await request(app).get(
+        `/api/posts?userID=${fakeUserId}`,
+      );
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBe(0);
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.data.length).toBe(0);
     });
   });
 
@@ -251,9 +253,7 @@ describe("Post Endpoints", () => {
 
   describe("DELETE /posts/:postId", () => {
     it("should fail to delete without authentication", async () => {
-      const response = await request(app).delete(
-        `/api/posts/${createdPostId}`,
-      );
+      const response = await request(app).delete(`/api/posts/${createdPostId}`);
 
       expect(response.status).toBe(401);
       expect(response.body.error).toBe("Unauthorized");
@@ -299,7 +299,7 @@ describe("Post Endpoints", () => {
 
       // Verify the post is actually deleted
       const getResponse = await request(app).get("/api/posts");
-      const postIds = getResponse.body.map((p: any) => p._id);
+      const postIds = getResponse.body.data.map((p: any) => p._id);
       expect(postIds).not.toContain(createdPostId);
     });
   });
