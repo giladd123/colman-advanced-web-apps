@@ -14,14 +14,20 @@ import swaggerSpec from "../swagger";
 
 const initApp = (): Promise<Express> => {
   return new Promise((resolve, reject) => {
-    // Load environment variables based on NODE_ENV
+    // Load environment variables from root .env
     if (process.env.NODE_ENV === "test") {
-      dotenv.config({ path: ".env.test" });
+      dotenv.config({ path: path.resolve(process.cwd(), "../.env.test") });
     } else {
-      dotenv.config();
+      dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
     }
 
-    ensureEnv(["DATABASE_URL", "JWT_SECRET", "JWT_REFRESH_SECRET", "GOOGLE_CLIENT_ID", "OPENAI_API_KEY"]);
+    ensureEnv([
+      "DATABASE_URL",
+      "JWT_SECRET",
+      "JWT_REFRESH_SECRET",
+      "GOOGLE_CLIENT_ID",
+      "OPENAI_API_KEY",
+    ]);
 
     connectToDatabase()
       .then(() => {

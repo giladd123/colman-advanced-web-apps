@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Comment, commentModel } from "../models/comment";
 import { postModel } from "../models/post";
 import { embeddingModel } from "../models/embedding";
@@ -9,9 +10,10 @@ export const createComment = async (comment: Comment) => {
   // Add embedding (non-blocking)
   postModel.findById(comment.postID).then((post) =>
     getEmbeddingWithContext(comment.content, post?.content)
-      .then((embedding) =>
-        embeddingModel.create({ sourceType: "comment", sourceId: created._id, content: comment.content, embedding })
-      )
+      .then((embedding) => {
+        if (mongoose.connection.readyState !== 1) return;
+        return embeddingModel.create({ sourceType: "comment", sourceId: created._id, content: comment.content, embedding });
+      })
       .catch((err) => console.error("Failed to index comment:", err))
   );
 

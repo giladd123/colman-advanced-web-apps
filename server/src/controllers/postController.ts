@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { postModel } from "../models/post";
 import { commentModel } from "../models/comment";
 import { embeddingModel } from "../models/embedding";
@@ -9,9 +10,10 @@ export async function addPost(userID: string, content: string, image?: string) {
 
   // add embedding (non-blocking)
   getEmbedding(content)
-    .then((embedding) =>
-      embeddingModel.create({ sourceType: "post", sourceId: saved._id, content, embedding })
-    )
+    .then((embedding) => {
+      if (mongoose.connection.readyState !== 1) return;
+      return embeddingModel.create({ sourceType: "post", sourceId: saved._id, content, embedding });
+    })
     .catch((err) => console.error("Failed to index post:", err));
 
   return saved;

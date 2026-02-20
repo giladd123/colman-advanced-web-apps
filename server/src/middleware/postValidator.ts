@@ -27,6 +27,9 @@ export async function addPostValidator(
   if (!content || typeof content !== "string" || content.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing content" });
   }
+  if (!(req as any).file) {
+    return res.status(400).json({ error: "Image is required" });
+  }
   next();
 }
 
@@ -39,18 +42,18 @@ export async function putPostValidator(
     return res.status(400).json({ error: "Request body is required" });
   }
   const userID = (req as any).user!.userID;
-    if (typeof userID !== "string" || userID.trim() === "") {
-      return res.status(400).json({ error: "Invalid userID" });
-    }
-    if (!mongoose.Types.ObjectId.isValid(userID)) {
-      return res.status(400).json({ error: "Invalid userID format" });
-    }
+  if (typeof userID !== "string" || userID.trim() === "") {
+    return res.status(400).json({ error: "Invalid userID" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(userID)) {
+    return res.status(400).json({ error: "Invalid userID format" });
+  }
 
-    const userExists = await User.findById(userID);
-    if (!userExists) {
-      return res.status(404).json({ error: "User not found" });
-    }
-  
+  const userExists = await User.findById(userID);
+  if (!userExists) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
   if ("content" in req.body) {
     const { content } = req.body;
     if (typeof content !== "string" || content.trim() === "") {
@@ -70,13 +73,15 @@ export async function putPostValidator(
   if (!mongoose.Types.ObjectId.isValid(req.params.postId)) {
     return res.status(400).json({ error: "Invalid postId format" });
   }
-  const post = await postModel.findById(req.params.postId)
+  const post = await postModel.findById(req.params.postId);
   if (post === null) {
     return res.status(404).json({ error: "Post not found" });
   }
 
   if (post.userID.toString() !== userID) {
-    return res.status(403).json({ error: "The user is not allowed to modify this post" });
+    return res
+      .status(403)
+      .json({ error: "The user is not allowed to modify this post" });
   }
   next();
 }
@@ -119,7 +124,9 @@ export async function deletePostValidator(
   }
 
   if (post.userID.toString() !== userID) {
-    return res.status(403).json({ error: "The user is not allowed to delete this post" });
+    return res
+      .status(403)
+      .json({ error: "The user is not allowed to delete this post" });
   }
   next();
 }
