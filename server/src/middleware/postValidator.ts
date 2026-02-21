@@ -27,9 +27,7 @@ export async function addPostValidator(
   if (!content || typeof content !== "string" || content.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing content" });
   }
-  if (!(req as any).file) {
-    return res.status(400).json({ error: "Image is required" });
-  }
+
   next();
 }
 
