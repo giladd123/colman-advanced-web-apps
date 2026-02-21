@@ -6,7 +6,7 @@ import { embeddingModel } from "./src/models/embedding";
 import { askLLM } from "./src/services/llmService";
 import { indexContent } from "./src/controllers/ragController";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ path: "../.env" });
 
 // ─── User Profiles ───────────────────────────────────────────────────────────
 
@@ -39,7 +39,8 @@ const USER_PROFILES = [
     username: "ethan_leads",
     email: "ethan@codely.dev",
     avatarImg: 33,
-    persona: "a tech lead who thinks deeply about architecture and code quality",
+    persona:
+      "a tech lead who thinks deeply about architecture and code quality",
   },
   {
     username: "fiona_dev",
@@ -92,7 +93,7 @@ Return only the post text — no title, no markdown headings.`;
 
 async function generateComment(
   postContent: string,
-  commenterPersona: string
+  commenterPersona: string,
 ): Promise<string> {
   const prompt = `You are ${commenterPersona} writing a comment on a coding forum called "Codely".
 The post you are replying to says:
@@ -126,8 +127,8 @@ async function seed() {
         email,
         password: "qwe123",
         profileImage: `https://i.pravatar.cc/150?img=${avatarImg}`,
-      }).save()
-    )
+      }).save(),
+    ),
   );
   console.log(`  ✓ ${users.length} users created`);
 
@@ -136,7 +137,9 @@ async function seed() {
   const posts = [];
   for (let i = 0; i < POST_TOPICS.length; i++) {
     const authorIndex = i % users.length;
-    console.log(`  Post ${i + 1}/${POST_TOPICS.length} (author: ${users[authorIndex].username})`);
+    console.log(
+      `  Post ${i + 1}/${POST_TOPICS.length} (author: ${users[authorIndex].username})`,
+    );
     const content = await generatePostContent(POST_TOPICS[i]);
     const post = await postModel.create({
       userID: users[authorIndex]._id,
@@ -161,7 +164,7 @@ async function seed() {
       const commenterIndex = (authorIndex + j + 1) % users.length;
       const persona = USER_PROFILES[commenterIndex].persona;
       console.log(
-        `  Comment ${j + 1}/${commentCount} on post ${i + 1} (commenter: ${users[commenterIndex].username})`
+        `  Comment ${j + 1}/${commentCount} on post ${i + 1} (commenter: ${users[commenterIndex].username})`,
       );
       const content = await generateComment(posts[i].content, persona);
       const comment = await commentModel.create({
@@ -191,13 +194,18 @@ async function seed() {
     }
     postLikesMap.set(posts[i]._id.toString(), likerIds);
   }
-  const totalLikes = [...postLikesMap.values()].reduce((sum, ids) => sum + ids.length, 0);
+  const totalLikes = [...postLikesMap.values()].reduce(
+    (sum, ids) => sum + ids.length,
+    0,
+  );
   console.log(`  ✓ ${totalLikes} likes created`);
 
   // ── Update denormalised counts ─────────────────────────────────────────────
   console.log("Updating post counts…");
   for (const post of posts) {
-    const commentsCount = await commentModel.countDocuments({ postID: post._id });
+    const commentsCount = await commentModel.countDocuments({
+      postID: post._id,
+    });
     const likers = postLikesMap.get(post._id.toString()) ?? [];
     await postModel.findByIdAndUpdate(post._id, {
       commentsCount,
