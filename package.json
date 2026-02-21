@@ -9,7 +9,8 @@
     "build": "cd client && npm run build && cd ../server && npm run build",
     "start": "cd server && npm start",
     "test": "cd server && npm test",
-    "swagger": "cd server && npm run swagger"
+    "swagger": "cd server && npm run swagger",
+    "prod": "npm run build && cp -r client/dist/* /usr/share/nginx/html/ && npm start"
   },
   "dependencies": {
     "jwt-decode": "^4.0.0"
