@@ -18,7 +18,12 @@ export const createComment = async (comment: Comment) => {
   return created;
 };
 
-export const getCommentsByPostID = async (postID: string) => await commentModel.find({ postID }).sort({ createdAt: -1 });
+export const getCommentsByPostID = async (postID: string, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const total = await commentModel.countDocuments({ postID });
+  const data = await commentModel.find({ postID }).sort({ createdAt: -1 }).skip(skip).limit(limit);
+  return { data, page, limit, total, hasMore: skip + data.length < total };
+};
 
 export const getCommentById = async (_id: string) => await commentModel.findOne({ _id });
 

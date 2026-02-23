@@ -36,7 +36,7 @@ const Profile: React.FC = () => {
   // used to satisfy the function signature as it doesn't accept nulls.
   // UseEffect happens after render so it might mean there's no userId,
   // we still want the fetch to happen.
-  const { posts, users, likedPosts, loading, error, handleLike, handleEditPost, handleDeletePost, setUsers } =
+  const { posts, users, likedPosts, loading, loadingMore, hasMore, loadMore, error, handleLike, handleEditPost, handleDeletePost, setUsers } =
     usePosts(userId ?? undefined);
 
   const [user, setUser] = useState<User | null>(null);
@@ -266,15 +266,25 @@ const Profile: React.FC = () => {
         {posts.length === 0 ? (
           <Typography color="textSecondary">No posts yet.</Typography>
         ) : (
-          <PostList
-            users={users}
-            posts={posts}
-            likedPosts={likedPosts}
-            onLike={handleLike}
-            onEdit={handleEditPost}
-            onDelete={handleDeletePost}
-            currentUserId={userId}
-          />
+          <>
+            <PostList
+              users={users}
+              posts={posts}
+              likedPosts={likedPosts}
+              onLike={handleLike}
+              onEdit={handleEditPost}
+              onDelete={handleDeletePost}
+              currentUserId={userId}
+            />
+            {hasMore && (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 2 }}>
+                <Button variant="outlined" onClick={loadMore} disabled={loadingMore}>
+                  {loadingMore ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
+                  Load more
+                </Button>
+              </Box>
+            )}
+          </>
         )}
       </Container>
     </Box>

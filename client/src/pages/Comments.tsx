@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import {
   Container,
@@ -34,6 +34,8 @@ import { useAuth } from "../context/useAuth";
 import { getUserIdFromToken } from "../utils/usersUtil";
 import { apiClient } from "../services/api";
 
+const COMMENTS_PAGE_SIZE = 5;
+
 type CommentItem = {
   _id: string;
   postID?: string;
@@ -42,12 +44,23 @@ type CommentItem = {
   createdAt: string;
 };
 
+type PaginatedCommentsResponse = {
+  data: CommentItem[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+};
+
 const CommentsPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const [post, setPost] = useState<null | Post>(null);
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -64,14 +77,15 @@ const CommentsPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const [postsResp, commentsResp, usersResp] = await Promise.all([
-          apiClient.get<Post[]>(`/posts`),
-          apiClient.get<CommentItem[]>(`/comments/postID/${postId}`),
+        const [postResp, commentsResp, usersResp] = await Promise.all([
+          apiClient.get<Post>(`/posts/${postId}`),
+          apiClient.get<PaginatedCommentsResponse>(`/comments/postID/${postId}?page=1&limit=${COMMENTS_PAGE_SIZE}`),
           apiClient.get<User[]>(`/users`),
         ]);
-        const found = postsResp.data.find((p) => p._id === postId);
-        if (found) setPost(found);
-        setComments(commentsResp.data || []);
+        setPost(postResp.data);
+        setComments(commentsResp.data.data || []);
+        setHasMore(commentsResp.data.hasMore);
+        setPage(1);
         setUsers(usersResp.data);
       } catch (err) {
         console.error(err);
@@ -82,6 +96,25 @@ const CommentsPage: React.FC = () => {
     };
     fetchData();
   }, [postId]);
+
+  const loadMore = useCallback(async () => {
+    if (!postId || loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    try {
+      const resp = await apiClient.get<PaginatedCommentsResponse>(
+        `/comments/postID/${postId}?page=${nextPage}&limit=${COMMENTS_PAGE_SIZE}`
+      );
+      setComments((prev) => [...prev, ...resp.data.data]);
+      setHasMore(resp.data.hasMore);
+      setPage(nextPage);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load more comments");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [postId, loadingMore, hasMore, page]);
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !postId) return;
@@ -297,6 +330,15 @@ const CommentsPage: React.FC = () => {
                 );
               })}
             </List>
+
+            {hasMore && (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 1, mb: 2 }}>
+                <Button variant="outlined" onClick={loadMore} disabled={loadingMore}>
+                  {loadingMore ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
+                  Load more comments
+                </Button>
+              </Box>
+            )}
 
             {isAuthenticated && (
               <form
