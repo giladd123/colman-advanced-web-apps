@@ -7,6 +7,16 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
 });
 
+apiClient.interceptors.request.use((config) => {
+  if (!config.headers.Authorization) {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 let isRefreshing = false;
 let refreshQueue: Array<{
   resolve: (token: string) => void;

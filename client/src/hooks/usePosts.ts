@@ -41,15 +41,7 @@ export function usePosts(userID?: string) {
 
   const handleLike = async (postId: string) => {
     try {
-      await apiClient.post(
-        `/posts/${postId}/like`,
-        {},
-        {
-          headers: accessToken
-            ? { Authorization: `Bearer ${accessToken}` }
-            : undefined,
-        },
-      );
+      await apiClient.post(`/posts/${postId}/like`, {});
       await fetchData();
     } catch {
       setError("Failed to like post");

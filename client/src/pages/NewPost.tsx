@@ -11,11 +11,9 @@ import {
   Paper,
 } from "@mui/material";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import { useAuth } from "../context/useAuth";
 import { apiClient } from "../services/api";
 
 const NewPost: React.FC = () => {
-  const { accessToken } = useAuth();
   const navigate = useNavigate();
 
   const [content, setContent] = useState("");
@@ -44,10 +42,7 @@ const NewPost: React.FC = () => {
       formData.append("image", selectedFile);
 
       await apiClient.post("/posts", formData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       navigate("/home");
