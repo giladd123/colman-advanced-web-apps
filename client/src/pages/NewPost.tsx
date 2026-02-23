@@ -33,13 +33,15 @@ const NewPost: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedFile || !content.trim()) return;
+    if (!content.trim()) return;
     setSubmitting(true);
     setError(null);
     try {
       const formData = new FormData();
       formData.append("content", content.trim());
-      formData.append("image", selectedFile);
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
 
       await apiClient.post("/posts", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -149,7 +151,7 @@ const NewPost: React.FC = () => {
             <Button
               variant="contained"
               onClick={handleSubmit}
-              disabled={submitting || !selectedFile || !content.trim()}
+              disabled={submitting || !content.trim()}
               sx={{
                 bgcolor: "#2563eb",
                 "&:hover": { bgcolor: "#1d4ed8" },

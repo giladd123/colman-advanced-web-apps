@@ -3,8 +3,8 @@ import { commentModel } from "../models/comment";
 import { embeddingModel } from "../models/embedding";
 import { getEmbedding } from "../services/llmService";
 
-export async function addPost(userID: string, content: string, image: string) {
-  const newPost = new postModel({ userID, content, image });
+export async function addPost(userID: string, content: string, image?: string) {
+  const newPost = new postModel({ userID, content, ...(image && { image }) });
   const saved = await newPost.save();
 
   // add embedding (non-blocking)
@@ -36,9 +36,11 @@ export async function getPostsByUser(userID: string) {
 export async function updatePost(
   postId: string,
   content?: string,
+  image?: string,
 ) {
   const updateData: any = {};
   if (content) updateData.content = content;
+  if (image) updateData.image = image;
   return await postModel.findByIdAndUpdate(postId, updateData, { new: true });
 }
 
