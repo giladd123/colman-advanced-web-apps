@@ -15,7 +15,7 @@
   "type": "commonjs",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon --watch src --watch server.ts --ext ts --exec ts-node server.ts",
+    "dev": "nodemon --watch src --watch server.ts --watch swagger.ts --ext ts --exec ts-node server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest --runInBand --coverage --detectOpenHandles --forceExit"

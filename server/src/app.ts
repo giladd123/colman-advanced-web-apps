@@ -9,7 +9,7 @@ import { commentRouter } from "./routers/commentRouter";
 import { userRouter } from "./routers/userRouter";
 import { ensureEnv } from "./utils/ensureEnv";
 import swaggerUi from "swagger-ui-express";
-import swaggerFile from "../swagger-output.json";
+import swaggerSpec from "../swagger";
 
 const initApp = (): Promise<Express> => {
   return new Promise((resolve, reject) => {
@@ -44,7 +44,7 @@ const initApp = (): Promise<Express> => {
         app.use("/api/posts", postRouter);
         app.use("/api/comments", commentRouter);
         app.use("/api/users", userRouter);
-        app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
+        app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
         // Serve frontend in production
         if (process.env.NODE_ENV === "production") {
