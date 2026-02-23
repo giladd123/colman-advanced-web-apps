@@ -1,8 +1,8 @@
 import { postModel } from "../models/post";
 import { commentModel } from "../models/comment";
 
-export async function addPost(title: string, userID: string, content: string) {
-  const newPost = new postModel({ title, userID, content });
+export async function addPost(userID: string, content: string, image: string) {
+  const newPost = new postModel({ userID, content, image });
   return await newPost.save();
 }
 
@@ -16,19 +16,17 @@ export async function getAllPosts() {
       await post.save();
     }
   }));
-  return await postModel.find({});
+  return await postModel.find({}).sort({ createdAt: -1 });
 }
 
 export async function getPostsByUser(userID: string) {
-  return await postModel.find({ userID: userID });
+  return await postModel.find({ userID: userID }).sort({ createdAt: -1 });
 }
 export async function updatePost(
   postId: string,
-  title?: string,
   content?: string,
 ) {
   const updateData: any = {};
-  if (title) updateData.title = title;
   if (content) updateData.content = content;
   return await postModel.findByIdAndUpdate(postId, updateData, { new: true });
 }

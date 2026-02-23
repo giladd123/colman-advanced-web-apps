@@ -2,7 +2,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "r
 import { AuthProvider } from "./context/AuthContext";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
+import Profile from "./pages/Profile";
 import Comments from "./pages/Comments";
+import NewPost from "./pages/NewPost";
 import Navbar from "./components/Navbar";
 import "./App.css";
 import { useAuth } from "./context/useAuth";
@@ -59,6 +61,22 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/new-post"
+          element={
+            <ProtectedRoute>
+              <NewPost />
             </ProtectedRoute>
           }
         />

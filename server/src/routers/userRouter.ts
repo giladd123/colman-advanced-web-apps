@@ -6,10 +6,12 @@ import {
 } from "../controllers/userController";
 import {
   getUserByIdValidator,
-  editUserValidator,
+  editUserPreUploadValidator,
+  editUserBodyValidator,
   deleteUserValidator,
 } from "../middleware/userValidator";
 import { authenticate } from "../middleware/authValidator";
+import { upload } from "../middleware/upload";
 
 export const userRouter = Router();
 
@@ -42,19 +44,28 @@ userRouter.get("/:id", getUserByIdValidator, async (req: Request, res) => {
   }
 });
 
+// Validation is split: ID/auth checks run before upload to avoid saving files
+// for unauthorized requests. Body validation runs after upload because multer
+// must parse multipart/form-data before req.body is available.
 userRouter.put(
   "/:id",
   authenticate,
-  editUserValidator,
+  editUserPreUploadValidator,
+  upload.single("profileImage"),
+  editUserBodyValidator,
   async (req: Request, res) => {
     const id = req.params.id as string;
     const { email, username, password } = req.body;
 
-    const updateData: { email?: string; username?: string; password?: string } =
+    const updateData: { email?: string; username?: string; password?: string; profileImage?: string } =
       {};
     if (email) updateData.email = email;
     if (username) updateData.username = username;
     if (password) updateData.password = password;
+
+    if (req.file) {
+      updateData.profileImage = `/uploads/${req.file.filename}`;
+    }
 
     try {
       const updatedUser = await editUser(updateData, id);

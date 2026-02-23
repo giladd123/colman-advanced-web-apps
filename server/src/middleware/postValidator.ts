@@ -11,12 +11,9 @@ export async function addPostValidator(
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ error: "Request body is required" });
   }
-  const { title, content } = req.body;
-  const userID = (req as any).user!.userID
+  const { content } = req.body;
+  const userID = (req as any).user!.userID;
 
-  if (!title || typeof title !== "string" || title.trim() === "") {
-    return res.status(400).json({ error: "Invalid or missing title" });
-  }
   if (!userID || typeof userID !== "string" || userID.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing userID" });
   }
@@ -30,6 +27,9 @@ export async function addPostValidator(
   if (!content || typeof content !== "string" || content.trim() === "") {
     return res.status(400).json({ error: "Invalid or missing content" });
   }
+  if (!(req as any).file) {
+    return res.status(400).json({ error: "Image is required" });
+  }
   next();
 }
 
@@ -41,13 +41,7 @@ export async function putPostValidator(
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ error: "Request body is required" });
   }
-  if ("title" in req.body) {
-    const { title } = req.body;
-    if (typeof title !== "string" || title.trim() === "") {
-      return res.status(400).json({ error: "Invalid title" });
-    }
-  }
-    const userID = (req as any).user!.userID
+  const userID = (req as any).user!.userID;
     if (typeof userID !== "string" || userID.trim() === "") {
       return res.status(400).json({ error: "Invalid userID" });
     }
