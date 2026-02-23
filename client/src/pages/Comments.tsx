@@ -28,6 +28,8 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import type { User } from "../types/user";
 import type { Post } from "../types/post";
 import { useAuth } from "../context/useAuth";
@@ -71,6 +73,34 @@ const CommentsPage: React.FC = () => {
   const [editingContent, setEditingContent] = useState("");
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
 
+  const isLiked = !!(
+    post &&
+    currentUserId &&
+    post.likes.includes(currentUserId)
+  );
+
+  const handleLike = async () => {
+    if (!postId || !isAuthenticated) return;
+    try {
+      const resp = await apiClient.post<{
+        liked: boolean;
+        likesCount: number;
+        likes: string[];
+      }>(`/posts/${postId}/like`, {});
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              likes: resp.data.likes,
+              likesCount: resp.data.likesCount,
+            }
+          : prev,
+      );
+    } catch {
+      setError("Failed to like post");
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (!postId) return;
@@ -79,7 +109,9 @@ const CommentsPage: React.FC = () => {
       try {
         const [postResp, commentsResp, usersResp] = await Promise.all([
           apiClient.get<Post>(`/posts/${postId}`),
-          apiClient.get<PaginatedCommentsResponse>(`/comments/postID/${postId}?page=1&limit=${COMMENTS_PAGE_SIZE}`),
+          apiClient.get<PaginatedCommentsResponse>(
+            `/comments/postID/${postId}?page=1&limit=${COMMENTS_PAGE_SIZE}`,
+          ),
           apiClient.get<User[]>(`/users`),
         ]);
         setPost(postResp.data);
@@ -103,7 +135,7 @@ const CommentsPage: React.FC = () => {
     const nextPage = page + 1;
     try {
       const resp = await apiClient.get<PaginatedCommentsResponse>(
-        `/comments/postID/${postId}?page=${nextPage}&limit=${COMMENTS_PAGE_SIZE}`
+        `/comments/postID/${postId}?page=${nextPage}&limit=${COMMENTS_PAGE_SIZE}`,
       );
       setComments((prev) => [...prev, ...resp.data.data]);
       setHasMore(resp.data.hasMore);
@@ -121,10 +153,10 @@ const CommentsPage: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      const resp = await apiClient.post<CommentItem>(
-        `/comments`,
-        { postID: postId, content: newComment.trim() },
-      );
+      const resp = await apiClient.post<CommentItem>(`/comments`, {
+        postID: postId,
+        content: newComment.trim(),
+      });
 
       const respData = resp.data as CommentItem;
       const added: CommentItem = respData.userID
@@ -150,7 +182,7 @@ const CommentsPage: React.FC = () => {
     try {
       await apiClient.put(`/comments/${commentId}`, { content });
       setComments((prev) =>
-        prev.map((c) => (c._id === commentId ? { ...c, content } : c))
+        prev.map((c) => (c._id === commentId ? { ...c, content } : c)),
       );
       setEditingCommentId(null);
       setEditingContent("");
@@ -218,6 +250,41 @@ const CommentsPage: React.FC = () => {
                 )}
                 <CardContent>
                   <Typography variant="body2">{post.content}</Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
+                      mt: 1,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Tooltip title={isLiked ? "Unlike" : "Like"}>
+                      <IconButton
+                        size="small"
+                        onClick={handleLike}
+                        disabled={!isAuthenticated}
+                        sx={{
+                          color: isLiked ? "#e53935" : "text.secondary",
+                          transition: "color 0.2s",
+                          p: 0.5,
+                        }}
+                      >
+                        {isLiked ? (
+                          <FavoriteIcon sx={{ fontSize: 18 }} />
+                        ) : (
+                          <FavoriteBorderIcon sx={{ fontSize: 18 }} />
+                        )}
+                      </IconButton>
+                    </Tooltip>
+                    <Typography
+                      variant="caption"
+                      fontWeight={600}
+                      color={isLiked ? "#e53935" : "text.secondary"}
+                    >
+                      {post.likesCount}
+                    </Typography>
+                  </Box>
                 </CardContent>
               </Card>
             )}
@@ -225,7 +292,10 @@ const CommentsPage: React.FC = () => {
             <List>
               {comments.map((c, idx) => {
                 const user = users.find((u) => u._id === c.userID);
-                const isCommentOwner = currentUserId != null && c.userID != null && currentUserId === c.userID.toString();
+                const isCommentOwner =
+                  currentUserId != null &&
+                  c.userID != null &&
+                  currentUserId === c.userID.toString();
                 return (
                   <React.Fragment key={c._id}>
                     <ListItem alignItems="flex-start">
@@ -250,7 +320,9 @@ const CommentsPage: React.FC = () => {
                             <Button
                               size="small"
                               variant="contained"
-                              onClick={() => handleEditComment(c._id, editingContent)}
+                              onClick={() =>
+                                handleEditComment(c._id, editingContent)
+                              }
                               disabled={!editingContent.trim()}
                             >
                               Save
@@ -278,6 +350,7 @@ const CommentsPage: React.FC = () => {
                                 >
                                   {user?.username || c.userID || "User"}
                                 </Typography>
+                                <br />
                                 <Typography
                                   component="span"
                                   variant="body2"
@@ -298,7 +371,13 @@ const CommentsPage: React.FC = () => {
                             }
                           />
                           {isCommentOwner && (
-                            <Box sx={{ display: "flex", alignItems: "flex-start", ml: 1 }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "flex-start",
+                                ml: 1,
+                              }}
+                            >
                               <Tooltip title="Edit comment">
                                 <IconButton
                                   size="small"
@@ -332,9 +411,17 @@ const CommentsPage: React.FC = () => {
             </List>
 
             {hasMore && (
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 1, mb: 2 }}>
-                <Button variant="outlined" onClick={loadMore} disabled={loadingMore}>
-                  {loadingMore ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
+              <Box
+                sx={{ display: "flex", justifyContent: "center", mt: 1, mb: 2 }}
+              >
+                <Button
+                  variant="outlined"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? (
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                  ) : null}
                   Load more comments
                 </Button>
               </Box>
@@ -422,11 +509,15 @@ const CommentsPage: React.FC = () => {
         )}
 
         {/* Delete Comment Confirmation Dialog */}
-        <Dialog open={deleteCommentId !== null} onClose={() => setDeleteCommentId(null)}>
+        <Dialog
+          open={deleteCommentId !== null}
+          onClose={() => setDeleteCommentId(null)}
+        >
           <DialogTitle>Delete Comment</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Are you sure you want to delete this comment? This action cannot be undone.
+              Are you sure you want to delete this comment? This action cannot
+              be undone.
             </DialogContentText>
           </DialogContent>
           <DialogActions>

@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import { User } from "./src/models/user";
 import { postModel } from "./src/models/post";
 import { commentModel } from "./src/models/comment";
-import { likeModel } from "./src/models/like";
 import { embeddingModel } from "./src/models/embedding";
 import { askLLM } from "./src/services/llmService";
 import { indexContent } from "./src/controllers/ragController";
@@ -116,7 +115,6 @@ async function seed() {
   await User.deleteMany({});
   await postModel.deleteMany({});
   await commentModel.deleteMany({});
-  await likeModel.deleteMany({});
   await embeddingModel.deleteMany({});
 
   // ── Users ──────────────────────────────────────────────────────────────────
@@ -178,31 +176,34 @@ async function seed() {
 
   // ── Likes ──────────────────────────────────────────────────────────────────
   console.log("Creating likes…");
-  const likeAssignments: { postID: mongoose.Types.ObjectId; userID: mongoose.Types.ObjectId }[] = [];
-  const seenLikes = new Set<string>();
+  const postLikesMap = new Map<string, mongoose.Types.ObjectId[]>();
 
   for (let i = 0; i < posts.length; i++) {
     const likeCount = 1 + (i % 3); // 1, 2, or 3 likes per post
+    const likers = new Set<string>();
+    const likerIds: mongoose.Types.ObjectId[] = [];
     for (let j = 0; j < likeCount; j++) {
       const likerIndex = (i + j + 2) % users.length;
-      const key = `${posts[i]._id}-${users[likerIndex]._id}`;
-      if (seenLikes.has(key)) continue;
-      seenLikes.add(key);
-      likeAssignments.push({
-        postID: posts[i]._id as mongoose.Types.ObjectId,
-        userID: users[likerIndex]._id as mongoose.Types.ObjectId,
-      });
+      const uid = users[likerIndex]._id.toString();
+      if (likers.has(uid)) continue;
+      likers.add(uid);
+      likerIds.push(users[likerIndex]._id as mongoose.Types.ObjectId);
     }
+    postLikesMap.set(posts[i]._id.toString(), likerIds);
   }
-  await likeModel.insertMany(likeAssignments);
-  console.log(`  ✓ ${likeAssignments.length} likes created`);
+  const totalLikes = [...postLikesMap.values()].reduce((sum, ids) => sum + ids.length, 0);
+  console.log(`  ✓ ${totalLikes} likes created`);
 
   // ── Update denormalised counts ─────────────────────────────────────────────
   console.log("Updating post counts…");
   for (const post of posts) {
     const commentsCount = await commentModel.countDocuments({ postID: post._id });
-    const likesCount = await likeModel.countDocuments({ postID: post._id });
-    await postModel.findByIdAndUpdate(post._id, { commentsCount, likesCount });
+    const likers = postLikesMap.get(post._id.toString()) ?? [];
+    await postModel.findByIdAndUpdate(post._id, {
+      commentsCount,
+      likes: likers,
+      likesCount: likers.length,
+    });
   }
 
   // ── RAG embeddings ─────────────────────────────────────────────────────────
@@ -215,7 +216,7 @@ async function seed() {
   console.log(`  Users:      ${users.length}`);
   console.log(`  Posts:      ${posts.length}`);
   console.log(`  Comments:   ${comments.length}`);
-  console.log(`  Likes:      ${likeAssignments.length}`);
+  console.log(`  Likes:      ${totalLikes}`);
   console.log(`  Embeddings: ${indexed}`);
   console.log("\nAll users have password: qwe123");
 
