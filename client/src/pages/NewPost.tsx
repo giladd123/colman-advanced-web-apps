@@ -96,7 +96,7 @@ const NewPost: React.FC = () => {
               overflow: "hidden",
               mb: 3,
               "&:hover": {
-                borderColor: imagePreview ? "transparent" : "#8134af",
+                borderColor: imagePreview ? "transparent" : "#2563eb",
               },
             }}
           >
@@ -137,7 +137,7 @@ const NewPost: React.FC = () => {
 
           {/* Content */}
           <TextField
-            label="What's on your mind?"
+            label="Share your code snippet or question..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
             multiline
@@ -156,8 +156,8 @@ const NewPost: React.FC = () => {
               onClick={handleSubmit}
               disabled={submitting || !selectedFile || !content.trim()}
               sx={{
-                bgcolor: "#8134af",
-                "&:hover": { bgcolor: "#6a2b91" },
+                bgcolor: "#2563eb",
+                "&:hover": { bgcolor: "#1d4ed8" },
               }}
             >
               {submitting ? <CircularProgress size={20} /> : "Post"}

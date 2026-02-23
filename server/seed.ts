@@ -42,21 +42,21 @@ async function seed() {
   const posts = await postModel.insertMany([
     {
       userID: users[0]._id,
-      content: "This is my first post 👋",
+      content: "Just discovered a neat trick with TypeScript generics - you can use conditional types to infer return types automatically!",
       image: "https://picsum.photos/600/400?random=1",
       likesCount: 0,
       commentsCount: 0,
     },
     {
       userID: users[1]._id,
-      content: "Loving this app already 🔥",
+      content: "Anyone else struggling with MongoDB aggregation pipelines? Here's a pattern I found useful for nested lookups.",
       image: "https://picsum.photos/600/400?random=2",
       likesCount: 0,
       commentsCount: 0,
     },
     {
       userID: users[2]._id,
-      content: "Hello from Charlie!",
+      content: "React 19 server components are a game changer. Here's my setup for a hybrid SSR + client app.",
       image: "https://picsum.photos/600/400?random=3",
       likesCount: 0,
       commentsCount: 0,
@@ -68,17 +68,17 @@ async function seed() {
     {
       postID: posts[0]._id,
       userID: users[1]._id,
-      content: "Nice post, Alice!",
+      content: "Great tip! I've been using mapped types for something similar.",
     },
     {
       postID: posts[0]._id,
       userID: users[2]._id,
-      content: "Welcome!",
+      content: "Can you share a code example? Would love to see the implementation.",
     },
     {
       postID: posts[2]._id,
       userID: users[1]._id,
-      content: "Hey Charlie, great to see you here.",
+      content: "Nice setup! How do you handle hydration mismatches?",
     },
   ]);
 
