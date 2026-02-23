@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
 import {
@@ -12,9 +12,12 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
+  Divider,
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { GoogleLogin } from "@react-oauth/google";
+import type { CredentialResponse } from "@react-oauth/google";
 import { authService } from "../services/authService";
 import { useAuth } from "../context/useAuth";
 
@@ -23,7 +26,18 @@ const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated, validateAndRefreshToken } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const checkExistingAuth = async () => {
+      const isValid = await validateAndRefreshToken();
+      if (isValid) {
+        navigate("/home");
+      }
+    };
+    checkExistingAuth();
+  }, [isAuthenticated, validateAndRefreshToken, navigate]);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -86,7 +100,7 @@ const Auth: React.FC = () => {
         });
       }
 
-      login(response.token);
+      login(response.accessToken, response.refreshToken);
       navigate("/home");
     } catch (err) {
       const error = err as AxiosError<{ error: string }>;
@@ -205,13 +219,32 @@ const Auth: React.FC = () => {
             </Button>
           </Box>
 
-          <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-            <Button variant="outlined" fullWidth disabled size="small">
-              Google
-            </Button>
-            <Button variant="outlined" fullWidth disabled size="small">
-              Facebook
-            </Button>
+          <Box sx={{ mt: 2, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+            <Divider sx={{ width: "100%" }}>or</Divider>
+            <GoogleLogin
+              onSuccess={async (credentialResponse: CredentialResponse) => {
+                if (!credentialResponse.credential) {
+                  setError("Google sign-in failed: no credential received");
+                  return;
+                }
+                setLoading(true);
+                setError(null);
+                try {
+                  const response = await authService.googleSignIn(credentialResponse.credential);
+                  login(response.accessToken, response.refreshToken);
+                  navigate("/home");
+                } catch (err) {
+                  const error = err as AxiosError<{ error: string }>;
+                  setError(error.response?.data?.error || "Google sign-in failed");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              onError={() => {
+                setError("Google sign-in failed");
+              }}
+              width="360"
+            />
           </Box>
 
           <Box sx={{ mt: 2, textAlign: "center" }}>

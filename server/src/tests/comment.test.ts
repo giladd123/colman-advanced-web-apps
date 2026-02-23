@@ -34,7 +34,7 @@ beforeAll(async () => {
 
   // Register user
   const registerResponse = await request(app)
-    .post("/auth/register")
+    .post("/api/auth/register")
     .send(testUser);
 
   accessToken = registerResponse.body.accessToken;
@@ -45,7 +45,7 @@ beforeAll(async () => {
 
   // Create a post to comment on
   await request(app)
-    .post("/posts")
+    .post("/api/posts")
     .set("Authorization", `Bearer ${accessToken}`)
     .send({ title: "Test Post for Comments", content: "Post content" });
 
@@ -54,7 +54,7 @@ beforeAll(async () => {
 
   // Register second user for authorization tests
   const secondRegisterResponse = await request(app)
-    .post("/auth/register")
+    .post("/api/auth/register")
     .send(secondUser);
 
   secondUserAccessToken = secondRegisterResponse.body.accessToken;
@@ -75,7 +75,7 @@ describe("Comment Endpoints", () => {
       };
 
       const response = await request(app)
-        .post("/comments")
+        .post("/api/comments")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(commentData);
 
@@ -93,7 +93,7 @@ describe("Comment Endpoints", () => {
         content: "Unauthorized comment",
       };
 
-      const response = await request(app).post("/comments").send(commentData);
+      const response = await request(app).post("/api/comments").send(commentData);
 
       expect(response.status).toBe(401);
       expect(response.body.error).toBe("Unauthorized");
@@ -106,7 +106,7 @@ describe("Comment Endpoints", () => {
       };
 
       const response = await request(app)
-        .post("/comments")
+        .post("/api/comments")
         .set("Authorization", "Bearer invalid-token")
         .send(commentData);
 
@@ -120,7 +120,7 @@ describe("Comment Endpoints", () => {
       };
 
       const response = await request(app)
-        .post("/comments")
+        .post("/api/comments")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(commentData);
 
@@ -133,7 +133,7 @@ describe("Comment Endpoints", () => {
       };
 
       const response = await request(app)
-        .post("/comments")
+        .post("/api/comments")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(commentData);
 
@@ -147,7 +147,7 @@ describe("Comment Endpoints", () => {
       };
 
       const response = await request(app)
-        .post("/comments")
+        .post("/api/comments")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(commentData);
 
@@ -162,7 +162,7 @@ describe("Comment Endpoints", () => {
 
       // secondUser comments on testUser's post
       const response = await request(app)
-        .post("/comments")
+        .post("/api/comments")
         .set("Authorization", `Bearer ${secondUserAccessToken}`)
         .send(commentData);
 
@@ -175,7 +175,7 @@ describe("Comment Endpoints", () => {
 
   describe("GET /comments/postID/:postID", () => {
     it("should get all comments for a post", async () => {
-      const response = await request(app).get(`/comments/postID/${postId}`);
+      const response = await request(app).get(`/api/comments/postID/${postId}`);
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -186,14 +186,14 @@ describe("Comment Endpoints", () => {
     it("should return empty array for post with no comments", async () => {
       // Create a new post without comments
       await request(app)
-        .post("/posts")
+        .post("/api/posts")
         .set("Authorization", `Bearer ${accessToken}`)
         .send({ title: "Post without comments", content: "No comments here" });
 
       const posts = await postModel.find({ title: "Post without comments" });
       const newPostId = posts[0]._id.toString();
 
-      const response = await request(app).get(`/comments/postID/${newPostId}`);
+      const response = await request(app).get(`/api/comments/postID/${newPostId}`);
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -202,14 +202,14 @@ describe("Comment Endpoints", () => {
 
     it("should return 404 for non-existent post ID", async () => {
       const fakePostId = new mongoose.Types.ObjectId().toString();
-      const response = await request(app).get(`/comments/postID/${fakePostId}`);
+      const response = await request(app).get(`/api/comments/postID/${fakePostId}`);
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe(`Post ${fakePostId} not found`);
     });
 
     it("should fail with invalid post ID format", async () => {
-      const response = await request(app).get("/comments/postID/invalid-id");
+      const response = await request(app).get("/api/comments/postID/invalid-id");
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe("Invalid postID: invalid-id");
@@ -219,7 +219,7 @@ describe("Comment Endpoints", () => {
   describe("GET /comments/commentID/:id", () => {
     it("should get a specific comment by ID", async () => {
       const response = await request(app).get(
-        `/comments/commentID/${createdCommentId}`,
+        `/api/comments/commentID/${createdCommentId}`,
       );
 
       expect(response.status).toBe(200);
@@ -230,14 +230,14 @@ describe("Comment Endpoints", () => {
     it("should return 404 for non-existent comment ID", async () => {
       const fakeCommentId = new mongoose.Types.ObjectId().toString();
       const response = await request(app).get(
-        `/comments/commentID/${fakeCommentId}`,
+        `/api/comments/commentID/${fakeCommentId}`,
       );
 
       expect(response.status).toBe(404);
     });
 
     it("should fail with invalid comment ID format", async () => {
-      const response = await request(app).get("/comments/commentID/invalid-id");
+      const response = await request(app).get("/api/comments/commentID/invalid-id");
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe("Invalid comment id: invalid-id");
@@ -251,7 +251,7 @@ describe("Comment Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/comments/${createdCommentId}`)
+        .put(`/api/comments/${createdCommentId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -265,7 +265,7 @@ describe("Comment Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/comments/${createdCommentId}`)
+        .put(`/api/comments/${createdCommentId}`)
         .send(updateData);
 
       expect(response.status).toBe(401);
@@ -274,7 +274,7 @@ describe("Comment Endpoints", () => {
 
     it("should fail with missing content", async () => {
       const response = await request(app)
-        .put(`/comments/${createdCommentId}`)
+        .put(`/api/comments/${createdCommentId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send({});
 
@@ -287,7 +287,7 @@ describe("Comment Endpoints", () => {
       };
 
       const response = await request(app)
-        .put("/comments/invalid-id")
+        .put("/api/comments/invalid-id")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -302,7 +302,7 @@ describe("Comment Endpoints", () => {
       };
 
       const createResponse = await request(app)
-        .post("/comments")
+        .post("/api/comments")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(commentData);
 
@@ -313,7 +313,7 @@ describe("Comment Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/comments/${commentId}`)
+        .put(`/api/comments/${commentId}`)
         .set("Authorization", `Bearer ${secondUserAccessToken}`)
         .send(updateData);
 
@@ -327,7 +327,7 @@ describe("Comment Endpoints", () => {
   describe("DELETE /comments/:id", () => {
     it("should fail to delete without authentication", async () => {
       const response = await request(app).delete(
-        `/comments/${createdCommentId}`,
+        `/api/comments/${createdCommentId}`,
       );
 
       expect(response.status).toBe(401);
@@ -336,7 +336,7 @@ describe("Comment Endpoints", () => {
 
     it("should fail with invalid comment ID format", async () => {
       const response = await request(app)
-        .delete("/comments/invalid-id")
+        .delete("/api/comments/invalid-id")
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(response.status).toBe(400);
@@ -350,7 +350,7 @@ describe("Comment Endpoints", () => {
       };
 
       const createResponse = await request(app)
-        .post("/comments")
+        .post("/api/comments")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(commentData);
 
@@ -358,7 +358,7 @@ describe("Comment Endpoints", () => {
 
       // Try to delete with second user's token
       const response = await request(app)
-        .delete(`/comments/${commentId}`)
+        .delete(`/api/comments/${commentId}`)
         .set("Authorization", `Bearer ${secondUserAccessToken}`);
 
       expect(response.status).toBe(403);
@@ -369,7 +369,7 @@ describe("Comment Endpoints", () => {
 
     it("should delete a comment when authenticated", async () => {
       const response = await request(app)
-        .delete(`/comments/${createdCommentId}`)
+        .delete(`/api/comments/${createdCommentId}`)
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -381,7 +381,7 @@ describe("Comment Endpoints", () => {
     it("should return 404 when deleting non-existent comment", async () => {
       const fakeCommentId = new mongoose.Types.ObjectId().toString();
       const response = await request(app)
-        .delete(`/comments/${fakeCommentId}`)
+        .delete(`/api/comments/${fakeCommentId}`)
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(response.status).toBe(404);

@@ -4,7 +4,8 @@ import bcrypt from "bcrypt";
 export interface IUser {
   email: string;
   username: string;
-  password: string;
+  password?: string;
+  googleId?: string;
   refreshTokens: string[];
   profileImage?: string;
 }
@@ -29,7 +30,13 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>({
   },
   password: {
     type: String,
-    required: true,
+    required: false,
+  },
+  googleId: {
+    type: String,
+    required: false,
+    unique: true,
+    sparse: true,
   },
   refreshTokens: {
     type: [String],
@@ -43,7 +50,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>({
 
 // Hash password before saving
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+  if (!this.isModified("password") || !this.password) return;
   const saltRounds = 10;
   const salt = await bcrypt.genSalt(saltRounds);
   this.password = await bcrypt.hash(this.password, salt);
@@ -54,6 +61,7 @@ userSchema.methods.comparePassword = async function (
   this: UserDocument,
   candidatePassword: string,
 ): Promise<boolean> {
+  if (!this.password) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 

@@ -6,6 +6,7 @@ const doc = {
     description: "API documentation",
   },
   host: "localhost:3000",
+  basePath: "/api",
   schemes: ["http"],
   tags: [
     { name: "Comments", description: "Endpoints for comments" },

@@ -6,9 +6,7 @@ import type { Post } from "../types/post";
 import type { User } from "../types/user";
 import { useAuth } from "../context/useAuth";
 import { getUserIdFromToken } from "../utils/usersUtil";
-
-const API_BASE = "http://localhost:3000";
-
+import API_BASE_URL from "../config/api";
 
 const Home: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -16,7 +14,7 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-  const { token } = useAuth();
+  const { accessToken } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,13 +22,15 @@ const Home: React.FC = () => {
       setError(null);
       try {
         const [postsResp, usersResp] = await Promise.all([
-          axios.get<Post[]>(`${API_BASE}/posts`),
-          axios.get<User[]>(`${API_BASE}/users`),
+          axios.get<Post[]>(`${API_BASE_URL}/posts`),
+          axios.get<User[]>(`${API_BASE_URL}/users`),
         ]);
         setPosts(postsResp.data.reverse?.() || postsResp.data);
         setUsers(usersResp.data);
-        const userId = getUserIdFromToken(token);
-        const likedPosts = postsResp.data.filter(p => p.likes.includes(userId || "")).map(p => p._id);
+        const userId = getUserIdFromToken(accessToken);
+        const likedPosts = postsResp.data
+          .filter((p) => p.likes.includes(userId || ""))
+          .map((p) => p._id);
         setLikedPosts(new Set(likedPosts));
       } finally {
         setLoading(false);
@@ -43,7 +43,10 @@ const Home: React.FC = () => {
     setPosts((prev) =>
       prev.map((p) =>
         p._id === postId
-          ? { ...p, likesCount: p.likesCount + (likedPosts.has(postId) ? -1 : 1) }
+          ? {
+              ...p,
+              likesCount: p.likesCount + (likedPosts.has(postId) ? -1 : 1),
+            }
           : p,
       ),
     );
@@ -57,10 +60,12 @@ const Home: React.FC = () => {
 
     try {
       await axios.post(
-        `${API_BASE}/posts/${postId}/like`,
+        `${API_BASE_URL}/posts/${postId}/like`,
         {},
         {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          headers: accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined,
         },
       );
     } catch (error) {
@@ -69,7 +74,10 @@ const Home: React.FC = () => {
       setPosts((prev) =>
         prev.map((p) =>
           p._id === postId
-            ? { ...p, likesCount: p.likesCount + (likedPosts.has(postId) ? 1 : -1) }
+            ? {
+                ...p,
+                likesCount: p.likesCount + (likedPosts.has(postId) ? 1 : -1),
+              }
             : p,
         ),
       );
@@ -104,7 +112,12 @@ const Home: React.FC = () => {
           </Alert>
         )}
         {!loading && !error && (
-          <PostList users={users} posts={posts} likedPosts={likedPosts} onLike={handleLike} />
+          <PostList
+            users={users}
+            posts={posts}
+            likedPosts={likedPosts}
+            onLike={handleLike}
+          />
         )}
       </Container>
     </Box>

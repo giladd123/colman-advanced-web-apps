@@ -31,14 +31,14 @@ beforeAll(async () => {
 
   // Register and login to get access token
   const registerResponse = await request(app)
-    .post("/auth/register")
+    .post("/api/auth/register")
     .send(testUser);
 
   accessToken = registerResponse.body.accessToken;
 
   // Get user ID from token (login again to make sure)
   const loginResponse = await request(app)
-    .post("/auth/login")
+    .post("/api/auth/login")
     .send({ email: testUser.email, password: testUser.password });
 
   accessToken = loginResponse.body.accessToken;
@@ -49,7 +49,7 @@ beforeAll(async () => {
 
   // Register second user for authorization tests
   const secondRegisterResponse = await request(app)
-    .post("/auth/register")
+    .post("/api/auth/register")
     .send(secondUser);
 
   secondUserAccessToken = secondRegisterResponse.body.accessToken;
@@ -70,7 +70,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .post("/posts")
+        .post("/api/posts")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(postData);
 
@@ -89,7 +89,7 @@ describe("Post Endpoints", () => {
         content: "This should not be created",
       };
 
-      const response = await request(app).post("/posts").send(postData);
+      const response = await request(app).post("/api/posts").send(postData);
 
       expect(response.status).toBe(401);
       expect(response.body.error).toBe("Unauthorized");
@@ -102,7 +102,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .post("/posts")
+        .post("/api/posts")
         .set("Authorization", "Bearer invalid-token")
         .send(postData);
 
@@ -116,7 +116,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .post("/posts")
+        .post("/api/posts")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(postData);
 
@@ -129,7 +129,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .post("/posts")
+        .post("/api/posts")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(postData);
 
@@ -139,7 +139,7 @@ describe("Post Endpoints", () => {
 
   describe("GET /posts", () => {
     it("should get all posts", async () => {
-      const response = await request(app).get("/posts");
+      const response = await request(app).get("/api/posts");
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -147,7 +147,7 @@ describe("Post Endpoints", () => {
     });
 
     it("should get posts by user ID", async () => {
-      const response = await request(app).get(`/posts?userID=${userId}`);
+      const response = await request(app).get(`/api/posts?userID=${userId}`);
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -157,7 +157,7 @@ describe("Post Endpoints", () => {
 
     it("should return empty array for non-existent user ID", async () => {
       const fakeUserId = new mongoose.Types.ObjectId().toString();
-      const response = await request(app).get(`/posts?userID=${fakeUserId}`);
+      const response = await request(app).get(`/api/posts?userID=${fakeUserId}`);
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -173,7 +173,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/posts/${createdPostId}`)
+        .put(`/api/posts/${createdPostId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -189,7 +189,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/posts/${createdPostId}`)
+        .put(`/api/posts/${createdPostId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -204,7 +204,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/posts/${createdPostId}`)
+        .put(`/api/posts/${createdPostId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -219,7 +219,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/posts/${createdPostId}`)
+        .put(`/api/posts/${createdPostId}`)
         .send(updateData);
 
       expect(response.status).toBe(401);
@@ -233,7 +233,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/posts/${fakePostId}`)
+        .put(`/api/posts/${fakePostId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -247,7 +247,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .put("/posts/invalid-id")
+        .put("/api/posts/invalid-id")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
@@ -260,7 +260,7 @@ describe("Post Endpoints", () => {
       };
 
       const response = await request(app)
-        .put(`/posts/${createdPostId}`)
+        .put(`/api/posts/${createdPostId}`)
         .set("Authorization", `Bearer ${secondUserAccessToken}`)
         .send(updateData);
 
