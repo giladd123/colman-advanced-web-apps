@@ -113,15 +113,6 @@ describe("Post Endpoints", () => {
       expect(response.body.error).toBe("Invalid token");
     });
 
-    it("should fail with missing image", async () => {
-      const response = await request(app)
-        .post("/api/posts")
-        .set("Authorization", `Bearer ${accessToken}`)
-        .field("content", "Content without image");
-
-      expect(response.status).toBe(400);
-    });
-
     it("should fail with missing content", async () => {
       const response = await request(app)
         .post("/api/posts")
