@@ -6,7 +6,8 @@ import { embeddingModel } from "./src/models/embedding";
 import { askLLM } from "./src/services/llmService";
 import { indexContent } from "./src/controllers/ragController";
 import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
+import { envFilePath } from "./src/utils/paths";
+dotenv.config({ path: envFilePath() });
 
 // ─── User Profiles ───────────────────────────────────────────────────────────
 

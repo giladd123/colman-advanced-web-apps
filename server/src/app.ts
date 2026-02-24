@@ -9,17 +9,14 @@ import { commentRouter } from "./routers/commentRouter";
 import { userRouter } from "./routers/userRouter";
 import { ragRouter } from "./routers/ragRouter";
 import { ensureEnv } from "./utils/ensureEnv";
+import { envFilePath, UPLOADS_DIR, CLIENT_DIST_DIR } from "./utils/paths";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "../swagger";
 
 const initApp = (): Promise<Express> => {
   return new Promise((resolve, reject) => {
     // Load environment variables from root .env
-    if (process.env.NODE_ENV === "test") {
-      dotenv.config({ path: path.resolve(__dirname, "../../../.env.test") });
-    } else {
-      dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-    }
+    dotenv.config({ path: envFilePath(process.env.NODE_ENV) });
 
     ensureEnv([
       "DATABASE_URL",
@@ -44,13 +41,12 @@ const initApp = (): Promise<Express> => {
         });
 
         // Ensure uploads directory exists
-        const uploadsDir = path.join(__dirname, "../../../uploads");
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
+        if (!fs.existsSync(UPLOADS_DIR)) {
+          fs.mkdirSync(UPLOADS_DIR, { recursive: true });
         }
 
         // Serve uploaded files
-        app.use("/uploads", express.static(uploadsDir));
+        app.use("/uploads", express.static(UPLOADS_DIR));
 
         // API routes
         app.use("/api/auth", authRouter);
@@ -62,10 +58,9 @@ const initApp = (): Promise<Express> => {
 
         // Serve frontend in production
         if (process.env.NODE_ENV === "production") {
-          const clientBuildPath = path.join(__dirname, "../../../client/dist");
-          app.use(express.static(clientBuildPath));
+          app.use(express.static(CLIENT_DIST_DIR));
           app.get("/{*path}", (_req, res) => {
-            res.sendFile(path.join(clientBuildPath, "index.html"));
+            res.sendFile(path.join(CLIENT_DIST_DIR, "index.html"));
           });
         }
 

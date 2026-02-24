@@ -6,6 +6,7 @@ import https from "https";
 import http from "http";
 import fs from "fs";
 import path from "path";
+import { SSL_DIR } from "./src/utils/paths";
 
 let server: Server;
 
@@ -35,22 +36,31 @@ initApp()
     process.on("SIGINT", gracefulShutdown).on("SIGTERM", gracefulShutdown);
 
     if (process.env.NODE_ENV !== "production") {
-            console.log('Running in development mode with HTTP');
-            server = http.createServer(app).listen(process.env.PORT);
-        } else {
-            console.log('Running in PRODUCTION mode with HTTPS');
-            const sslOptions = {
-                key: fs.readFileSync(path.resolve(__dirname, '../../ssl/client-key.pem')),
-                cert: fs.readFileSync(path.resolve(__dirname, '../../ssl/client-cert.pem'))
-            };
-           
-            // const localHttpsPort = 3443; // Override port for local HTTPS testing
-            // server = https.createServer(sslOptions, app).listen(localHttpsPort, () => {
-            //     console.log(`Server running on https://localhost:${localHttpsPort}`);
-            // });
-    
-            https.createServer(sslOptions, app).listen(process.env.PORT);
-        }
+      console.log("Running in development mode with HTTP");
+      server = http.createServer(app).listen(process.env.PORT);
+    } else {
+      console.log("Running in PRODUCTION mode with HTTPS");
+
+      const keyPath = path.join(SSL_DIR, "client-key.pem");
+      const certPath = path.join(SSL_DIR, "client-cert.pem");
+
+      if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+        console.error(
+          `SSL certificate files not found.\n` +
+            `  Expected key : ${keyPath}\n` +
+            `  Expected cert: ${certPath}\n` +
+            `Exiting.`,
+        );
+        process.exit(1);
+      }
+
+      const sslOptions = {
+        key: fs.readFileSync(keyPath),
+        cert: fs.readFileSync(certPath),
+      };
+
+      server = https.createServer(sslOptions, app).listen(process.env.PORT);
+    }
 
     server.on("error", (err: NodeJS.ErrnoException) => {
       if (err.code === "EADDRINUSE") {
