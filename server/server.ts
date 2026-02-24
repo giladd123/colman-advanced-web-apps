@@ -2,6 +2,9 @@ import initApp from "./src/app";
 import mongoose from "mongoose";
 import type { Server } from "http";
 import type { Express } from "express";
+import https from "https";
+import http from "http";
+import fs from "fs";
 
 let server: Server;
 
@@ -30,15 +33,31 @@ initApp()
   .then((app: Express) => {
     process.on("SIGINT", gracefulShutdown).on("SIGTERM", gracefulShutdown);
 
-    const port = process.env.PORT || 8080;
-
-    server = app.listen(port, () => {
-      console.log(`listening on port ${port}`);
-    });
+    if (process.env.NODE_ENV !== "production") {
+            console.log('Running in development mode with HTTP');
+            server = http.createServer(app).listen(process.env.PORT);
+        } else {
+            console.log('Running in PRODUCTION mode with HTTPS');
+            const sslOptions = {
+                key: fs.readFileSync('./ssl/client-key.pem'),
+                cert: fs.readFileSync('./ssl/client-cert.pem')
+            };
+            /**
+             * ⚠️ LOCAL TEST ONLY ⚠️
+             * This HTTPS server is for local development testing.
+             * REMOVE or adjust when deploying behind Nginx on the college server.
+             */
+            const localHttpsPort = 3443; // Override port for local HTTPS testing
+            server = https.createServer(sslOptions, app).listen(localHttpsPort, () => {
+                console.log(`Server running on https://localhost:${localHttpsPort}`);
+            });
+    
+            // https.createServer(sslOptions, app).listen(process.env.PORT);
+        }
 
     server.on("error", (err: NodeJS.ErrnoException) => {
       if (err.code === "EADDRINUSE") {
-        console.error(`Port ${port} is already in use. Exiting.`);
+        console.error(`Port ${process.env.PORT} is already in use. Exiting.`);
         process.exit(1);
       } else {
         throw err;
