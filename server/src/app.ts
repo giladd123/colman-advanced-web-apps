@@ -37,6 +37,12 @@ const initApp = (): Promise<Express> => {
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
 
+        // CORS middleware
+        app.use((req, res, next) => {
+          res.header("Access-Control-Allow-Credentials", "true");
+          next();
+        });
+
         // Ensure uploads directory exists
         const uploadsDir = path.join(__dirname, "../../uploads");
         if (!fs.existsSync(uploadsDir)) {
