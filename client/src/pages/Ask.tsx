@@ -111,11 +111,7 @@ const Ask: React.FC = () => {
                     mb: 0.5,
                   }}
                 >
-                  <Chip
-                    label={source.sourceType}
-                    size="small"
-                    variant="outlined"
-                  />
+                  <Chip label="thread" size="small" variant="outlined" />
                   <Typography variant="caption" color="text.secondary">
                     {Math.round(source.score * 100)}% match
                   </Typography>
