@@ -1,7 +1,7 @@
 import { postModel } from "../models/post";
 import { commentModel } from "../models/comment";
 import { embeddingModel } from "../models/embedding";
-import { getEmbedding, getEmbeddingWithContext, askLLM } from "../services/llmService";
+import { getEmbeddingWithContext, askLLM } from "../services/llmService";
 
 function cosineSimilarity(a: number[], b: number[]): number {
   let dot = 0;
@@ -46,7 +46,10 @@ export async function indexContent() {
     if (exists) continue;
 
     const post = posts.find((p) => p._id.equals(comment.postID));
-    const embedding = await getEmbeddingWithContext(comment.content, post?.content);
+    const embedding = await getEmbeddingWithContext(
+      comment.content,
+      post?.content,
+    );
     await embeddingModel.create({
       sourceType: "comment",
       sourceId: comment._id,
@@ -59,11 +62,11 @@ export async function indexContent() {
   return { indexed, total: posts.length + comments.length };
 }
 
-const TOP_K = 5;
+const TOP_K_THREADS = 3;
 const SCORE_THRESHOLD = 0.5;
 
 export async function queryRAG(question: string) {
-  const questionEmbedding = await getEmbedding(question);
+  const questionEmbedding = await getEmbeddingWithContext(question);
 
   const allEmbeddings = await embeddingModel.find({});
 
@@ -75,10 +78,10 @@ export async function queryRAG(question: string) {
       score: cosineSimilarity(questionEmbedding, doc.embedding),
     }))
     .filter((item) => item.score >= SCORE_THRESHOLD)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, TOP_K);
+    .sort((a, b) => b.score - a.score);
 
-  const sourcesWithPost = await Promise.all(
+  // Resolve postId for all scored items
+  const scoredWithPostId = await Promise.all(
     scored.map(async (item) => {
       let postId: string;
       if (item.sourceType === "post") {
@@ -91,15 +94,75 @@ export async function queryRAG(question: string) {
     }),
   );
 
-  const context = scored
-    .map((item) => `[${item.sourceType}] ${item.content}`)
-    .join("\n\n");
+  // Group by thread (postId)
+  const threadMap = new Map<string, typeof scoredWithPostId>();
+  for (const item of scoredWithPostId) {
+    if (!item.postId) continue;
+    const existing = threadMap.get(item.postId) || [];
+    existing.push(item);
+    threadMap.set(item.postId, existing);
+  }
+
+  // Rank threads by best individual score, take top threads
+  const rankedThreads = [...threadMap.entries()]
+    .map(([postId, items]) => ({
+      postId,
+      bestScore: Math.max(...items.map((i) => i.score)),
+      bestItem: items.reduce((a, b) => (a.score > b.score ? a : b)),
+    }))
+    .sort((a, b) => b.bestScore - a.bestScore)
+    .slice(0, TOP_K_THREADS);
+
+  // Fetch full thread content and build structured context
+  const contextBlocks: string[] = [];
+  const sources: {
+    content: string;
+    sourceType: string;
+    sourceId: string;
+    score: number;
+    postId: string;
+  }[] = [];
+
+  for (const thread of rankedThreads) {
+    const post = await postModel.findById(thread.postId);
+    const comments = await commentModel
+      .find({ postID: thread.postId })
+      .sort({ createdAt: 1 });
+
+    let block = `=== Thread ===\n`;
+    block += `[Post]: ${post?.content || "(post not found)"}\n`;
+    for (const comment of comments) {
+      block += `[Reply]: ${comment.content}\n`;
+    }
+    contextBlocks.push(block);
+
+    sources.push({
+      content: thread.bestItem.content,
+      sourceType: thread.bestItem.sourceType,
+      sourceId: thread.bestItem.sourceId,
+      score: thread.bestScore,
+      postId: thread.postId,
+    });
+  }
+
+  const context = contextBlocks.join("\n\n");
 
   const prompt = context
-    ? `You are a helpful assistant for the Codely code forum. Answer the user's question based on the following forum content:\n\n${context}\n\nQuestion: ${question}\n\nAnswer based on the forum content above. If the content doesn't help answer the question, say so.`
+    ? `You are a helpful assistant for the Codely code forum.
+
+Below are relevant forum threads. Each thread starts with the original post (a question or discussion), followed by replies that may contain solutions, corrections, or additional context.
+
+${context}
+Question: ${question}
+
+Instructions:
+- Answer based only on the forum threads above.
+- Pay special attention to replies, as they often contain solutions and corrections to the original post's question.
+- If multiple threads are relevant, synthesize the information.
+- If the content doesn't help answer the question, say so.`
     : `You are a helpful assistant for the Codely code forum. The user asked: "${question}"\n\nNo relevant forum content was found. Let the user know and don't attempt to answer based on non-forum knowledge.`;
 
   const answer = await askLLM(prompt);
 
-  return { answer, sources: sourcesWithPost };
+  return { answer, sources };
 }
