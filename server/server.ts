@@ -39,8 +39,8 @@ initApp()
         } else {
             console.log('Running in PRODUCTION mode with HTTPS');
             const sslOptions = {
-                key: fs.readFileSync('./ssl/client-key.pem'),
-                cert: fs.readFileSync('./ssl/client-cert.pem')
+                key: fs.readFileSync('../ssl/client-key.pem'),
+                cert: fs.readFileSync('../ssl/client-cert.pem')
             };
            
             // const localHttpsPort = 3443; // Override port for local HTTPS testing

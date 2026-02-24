@@ -44,7 +44,7 @@ const initApp = (): Promise<Express> => {
         });
 
         // Ensure uploads directory exists
-        const uploadsDir = path.join(__dirname, "../../uploads");
+        const uploadsDir = path.join(__dirname, "../../../uploads");
         if (!fs.existsSync(uploadsDir)) {
           fs.mkdirSync(uploadsDir, { recursive: true });
         }
@@ -62,9 +62,9 @@ const initApp = (): Promise<Express> => {
 
         // Serve frontend in production
         if (process.env.NODE_ENV === "production") {
-          const clientBuildPath = path.join(__dirname, "../../client/dist");
+          const clientBuildPath = path.join(__dirname, "../../../client/dist");
           app.use(express.static(clientBuildPath));
-          app.get("*", (_req, res) => {
+          app.get("/{*path}", (_req, res) => {
             res.sendFile(path.join(clientBuildPath, "index.html"));
           });
         }
