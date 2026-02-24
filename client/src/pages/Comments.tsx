@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
   Box,
@@ -57,6 +57,7 @@ type PaginatedCommentsResponse = {
 
 const CommentsPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
+  const navigate = useNavigate();
   const [post, setPost] = useState<null | Post>(null);
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -81,6 +82,7 @@ const CommentsPage: React.FC = () => {
   const [editPostSelectedFile, setEditPostSelectedFile] = useState<File | null>(
     null,
   );
+  const [deletePostDialogOpen, setDeletePostDialogOpen] = useState(false);
   const editPostFileInputRef = useRef<HTMLInputElement>(null);
 
   const isLiked = !!(
@@ -257,6 +259,18 @@ const CommentsPage: React.FC = () => {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!postId) return;
+    setError(null);
+    try {
+      await apiClient.delete(`/posts/${postId}`);
+      setDeletePostDialogOpen(false);
+      navigate("/home");
+    } catch {
+      setError("Failed to delete post");
+    }
+  };
+
   return (
     <Box>
       <Container maxWidth="md" sx={{ py: 3 }}>
@@ -296,11 +310,18 @@ const CommentsPage: React.FC = () => {
                   subheader={new Date(post.createdAt).toLocaleString()}
                   action={
                     isPostOwner ? (
-                      <Tooltip title="Edit post">
-                        <IconButton size="small" onClick={handleEditPostOpen}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      <Box sx={{ display: "flex", gap: 0.5 }}>
+                        <Tooltip title="Edit post">
+                          <IconButton size="small" onClick={handleEditPostOpen}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete post">
+                          <IconButton size="small" onClick={() => setDeletePostDialogOpen(true)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     ) : undefined
                   }
                 />
@@ -676,6 +697,29 @@ const CommentsPage: React.FC = () => {
               disabled={!editPostContent.trim()}
             >
               Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={deletePostDialogOpen}
+          onClose={() => setDeletePostDialogOpen(false)}
+        >
+          <DialogTitle>Delete Post</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete this post? This action cannot be
+              undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeletePostDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleDeletePost}
+              color="error"
+              variant="contained"
+            >
+              Delete
             </Button>
           </DialogActions>
         </Dialog>
