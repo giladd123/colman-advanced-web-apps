@@ -29,8 +29,27 @@ export const getCommentsByPostID = async (postID: string, page = 1, limit = 10) 
 
 export const getCommentById = async (_id: string) => await commentModel.findOne({ _id });
 
-export const editComment = async (comment: Partial<Omit<Comment, 'postID'>>, id: string) =>
-    await commentModel.findByIdAndUpdate(id, comment, { new: true });
+export const editComment = async (comment: Partial<Omit<Comment, 'postID'>>, id: string) => {
+  const updated = await commentModel.findByIdAndUpdate(id, comment, { new: true });
+
+  // Update embedding if content changed (non-blocking)
+  if (comment.content && updated) {
+    postModel.findById(updated.postID).then((post) =>
+      getEmbeddingWithContext(updated.content, post?.content)
+        .then((embedding) => {
+          if (mongoose.connection.readyState !== 1) return;
+          return embeddingModel.findOneAndUpdate(
+            { sourceType: "comment", sourceId: id },
+            { content: updated.content, embedding },
+            { upsert: true }
+          );
+        })
+        .catch((err) => console.error("Failed to update comment embedding:", err))
+    );
+  }
+
+  return updated;
+};
 
 export const deleteComment = async (commentId: string) => await commentModel.deleteOne({ _id: commentId });
 

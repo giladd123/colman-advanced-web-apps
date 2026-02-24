@@ -52,7 +52,23 @@ export async function updatePost(
   const updateData: any = {};
   if (content) updateData.content = content;
   if (image) updateData.image = image;
-  return await postModel.findByIdAndUpdate(postId, updateData, { new: true });
+  const updated = await postModel.findByIdAndUpdate(postId, updateData, { new: true });
+
+  // Update embedding if content changed (non-blocking)
+  if (content && updated) {
+    getEmbedding(content)
+      .then((embedding) => {
+        if (mongoose.connection.readyState !== 1) return;
+        return embeddingModel.findOneAndUpdate(
+          { sourceType: "post", sourceId: postId },
+          { content, embedding },
+          { upsert: true }
+        );
+      })
+      .catch((err) => console.error("Failed to update post embedding:", err));
+  }
+
+  return updated;
 }
 
 export async function deletePost(postId: string) {
