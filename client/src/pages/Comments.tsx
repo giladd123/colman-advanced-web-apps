@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   Container,
@@ -30,6 +30,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import type { User } from "../types/user";
 import type { Post } from "../types/post";
 import { useAuth } from "../context/useAuth";
@@ -72,6 +73,15 @@ const CommentsPage: React.FC = () => {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+  const [editPostDialogOpen, setEditPostDialogOpen] = useState(false);
+  const [editPostContent, setEditPostContent] = useState("");
+  const [editPostImagePreview, setEditPostImagePreview] = useState<string | null>(
+    null,
+  );
+  const [editPostSelectedFile, setEditPostSelectedFile] = useState<File | null>(
+    null,
+  );
+  const editPostFileInputRef = useRef<HTMLInputElement>(null);
 
   const isLiked = !!(
     post &&
@@ -202,6 +212,50 @@ const CommentsPage: React.FC = () => {
   };
 
   const postUser = users.find((u) => u._id === post?.userID);
+  const isPostOwner =
+    currentUserId != null &&
+    post?.userID != null &&
+    currentUserId === post.userID.toString();
+  const editPostDisplayImage = editPostImagePreview || post?.image || null;
+
+  const handleEditPostOpen = () => {
+    if (!post) return;
+    setEditPostContent(post.content);
+    setEditPostImagePreview(null);
+    setEditPostSelectedFile(null);
+    setEditPostDialogOpen(true);
+  };
+
+  const handleEditPostFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditPostSelectedFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setEditPostImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleEditPostSubmit = async () => {
+    if (!postId || !post || !editPostContent.trim()) return;
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("content", editPostContent.trim());
+      if (editPostSelectedFile) {
+        formData.append("image", editPostSelectedFile);
+      }
+
+      await apiClient.put(`/posts/${postId}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const updatedPostResp = await apiClient.get<Post>(`/posts/${postId}`);
+      setPost(updatedPostResp.data);
+      setEditPostDialogOpen(false);
+    } catch {
+      setError("Failed to edit post");
+    }
+  };
 
   return (
     <Box>
@@ -240,6 +294,15 @@ const CommentsPage: React.FC = () => {
                   }
                   title={postUser?.username || "User"}
                   subheader={new Date(post.createdAt).toLocaleString()}
+                  action={
+                    isPostOwner ? (
+                      <Tooltip title="Edit post">
+                        <IconButton size="small" onClick={handleEditPostOpen}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    ) : undefined
+                  }
                 />
                 {post.image && (
                   <CardMedia
@@ -530,6 +593,89 @@ const CommentsPage: React.FC = () => {
               variant="contained"
             >
               Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={editPostDialogOpen}
+          onClose={() => setEditPostDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Edit Post</DialogTitle>
+          <DialogContent>
+            <Box
+              onClick={() => editPostFileInputRef.current?.click()}
+              sx={{
+                width: "100%",
+                height: 200,
+                border: "2px dashed",
+                borderColor: editPostDisplayImage ? "transparent" : "grey.400",
+                borderRadius: 2,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                overflow: "hidden",
+                mt: 1,
+                mb: 2,
+                "&:hover": {
+                  borderColor: editPostDisplayImage ? "transparent" : "#2563eb",
+                },
+              }}
+            >
+              {editPostDisplayImage ? (
+                <Box
+                  component="img"
+                  src={editPostDisplayImage}
+                  alt="Preview"
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    color: "grey.500",
+                  }}
+                >
+                  <AddPhotoAlternateIcon sx={{ fontSize: 48, mb: 1 }} />
+                  <Typography variant="body2">Click to upload an image</Typography>
+                </Box>
+              )}
+            </Box>
+
+            <input
+              ref={editPostFileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              hidden
+              onChange={handleEditPostFileSelect}
+            />
+
+            <TextField
+              autoFocus
+              fullWidth
+              multiline
+              minRows={3}
+              value={editPostContent}
+              onChange={(e) => setEditPostContent(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditPostDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleEditPostSubmit}
+              variant="contained"
+              disabled={!editPostContent.trim()}
+            >
+              Save
             </Button>
           </DialogActions>
         </Dialog>
