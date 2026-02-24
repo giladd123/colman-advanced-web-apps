@@ -42,17 +42,13 @@ initApp()
                 key: fs.readFileSync('./ssl/client-key.pem'),
                 cert: fs.readFileSync('./ssl/client-cert.pem')
             };
-            /**
-             * ⚠️ LOCAL TEST ONLY ⚠️
-             * This HTTPS server is for local development testing.
-             * REMOVE or adjust when deploying behind Nginx on the college server.
-             */
-            const localHttpsPort = 3443; // Override port for local HTTPS testing
-            server = https.createServer(sslOptions, app).listen(localHttpsPort, () => {
-                console.log(`Server running on https://localhost:${localHttpsPort}`);
-            });
+           
+            // const localHttpsPort = 3443; // Override port for local HTTPS testing
+            // server = https.createServer(sslOptions, app).listen(localHttpsPort, () => {
+            //     console.log(`Server running on https://localhost:${localHttpsPort}`);
+            // });
     
-            // https.createServer(sslOptions, app).listen(process.env.PORT);
+            https.createServer(sslOptions, app).listen(process.env.PORT);
         }
 
     server.on("error", (err: NodeJS.ErrnoException) => {
