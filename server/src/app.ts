@@ -16,9 +16,9 @@ const initApp = (): Promise<Express> => {
   return new Promise((resolve, reject) => {
     // Load environment variables from root .env
     if (process.env.NODE_ENV === "test") {
-      dotenv.config({ path: path.resolve(process.cwd(), "../.env.test") });
+      dotenv.config({ path: path.resolve(__dirname, "../../../.env.test") });
     } else {
-      dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
+      dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
     }
 
     ensureEnv([
